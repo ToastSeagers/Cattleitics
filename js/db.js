@@ -107,14 +107,26 @@ class CattleiticsDB {
         const { data, error } = await this.supabase.auth.signUp({ email, password });
         if (error) throw error;
 
-        // Update profile with farm name
-        if (data.user && farmName) {
-            await this.supabase.from('profiles').update({ farm_name: farmName }).eq('id', data.user.id);
+        // Supabase may require email confirmation depending on settings.
+        // If we have a session immediately, set up the user.
+        if (data.session) {
+            this.user = data.session.user;
+            this.mode = 'supabase';
+            this.storageMode = 'Cloud Sync (Supabase)';
+
+            // Update profile with farm name
+            if (this.user && farmName) {
+                await this.supabase.from('profiles')
+                    .update({ farm_name: farmName, owner_name: '' })
+                    .eq('id', this.user.id);
+            }
+        } else if (data.user) {
+            // Email confirmation required - user exists but no session yet
+            this.user = data.user;
+            this.mode = 'supabase';
+            this.storageMode = 'Cloud Sync (Supabase)';
         }
 
-        this.user = data.user;
-        this.mode = 'supabase';
-        this.storageMode = 'Cloud Sync (Supabase)';
         return data;
     }
 

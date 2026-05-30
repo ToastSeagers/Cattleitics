@@ -137,10 +137,23 @@ function bindAuthHandlers() {
         }
 
         try {
-            await db.signUp(email, password, farm);
-            // Save farm name as a setting
-            if (db.mode === 'supabase') {
+            const result = await db.signUp(email, password, farm);
+            
+            // If email confirmation is required, show a message
+            if (!result.session) {
+                errorEl.textContent = 'Check your email to confirm your account, then sign in.';
+                errorEl.style.display = 'block';
+                errorEl.style.borderColor = 'var(--success)';
+                errorEl.style.color = 'var(--success)';
+                errorEl.style.background = 'rgba(40, 167, 69, 0.1)';
+                return;
+            }
+
+            // Session is active - save farm name and proceed
+            try {
                 await db.saveSetting('farm_name', farm);
+            } catch (settingsErr) {
+                console.warn("Could not save farm name setting immediately:", settingsErr.message);
             }
             hideAuthScreen();
             await initializeApp();
@@ -224,10 +237,21 @@ async function loadAppState() {
     
     // Load Paddocks using dedicated method supporting server API or offline fallback
     const paddocksSetting = await db.getAllPaddocks();
-    currentPaddockList = (paddocksSetting && paddocksSetting.length > 0) ? paddocksSetting : MOCK_PADDOCKS;
+    if (db.mode === 'supabase') {
+        // Cloud users: use whatever they have (empty for new users)
+        currentPaddockList = paddocksSetting || [];
+    } else {
+        // Local/offline: fall back to mock paddocks if empty
+        currentPaddockList = (paddocksSetting && paddocksSetting.length > 0) ? paddocksSetting : MOCK_PADDOCKS;
+    }
 
     // Load farm name setup
-    const farmName = await db.getSetting('farm_name') || 'Glenthorpe Farm';
+    let farmName = 'My Farm';
+    try {
+        farmName = await db.getSetting('farm_name') || (db.mode === 'supabase' ? 'My Farm' : 'Glenthorpe Farm');
+    } catch (err) {
+        console.warn("Could not load farm name:", err.message);
+    }
     document.querySelector('.logo-text span').textContent = farmName;
     document.getElementById('settings-farm-name').value = farmName;
     
