@@ -2635,26 +2635,27 @@ async function loadAndRenderReadme() {
     // Portable Offline User Manual HTML fallback
     container.innerHTML = `
         <h1>Cattleitics User Manual</h1>
-        <p>Your agricultural registers are currently operating in <strong>Offline Browser Mode (IndexedDB)</strong>.</p>
+        <p>Your herd records are currently operating in <strong>${db.storageMode}</strong> mode.</p>
         
-        <blockquote style="border-left-color: var(--warning); background-color: rgba(247, 127, 0, 0.05);">
-            <p style="color: var(--warning); font-weight: bold;"><i class="fa-solid fa-circle-exclamation"></i> OFFLINE STORAGE ONLY</p>
-            <p>In offline mode, all herd records are kept securely inside your browser's private cache. To sync records with physical Excel spreadsheet files (<code>data/cattle.csv</code>), make sure to run the local Node server using <code>npm run dev</code> inside your project folder.</p>
-        </blockquote>
+        <h2>Getting Started</h2>
+        <p>Use the <strong>+ Add Cattle</strong> button to register animals one by one, or go to <strong>Data Settings</strong> to import a CSV spreadsheet with your full herd.</p>
 
         <h2>Primary Farm Workflows</h2>
         
         <h3>1. Relocating Cattle</h3>
-        <p>Go to the <strong>Pasture Map</strong>, click on a paddock cell, select any animal grazing inside, and click <strong>Move Pasture</strong>. Relay movement assignments are automatically saved in the cow's history logs.</p>
+        <p>Go to the <strong>Pasture Map</strong>, click on a paddock cell, select any animal grazing inside, and click <strong>Move Pasture</strong>. Movements are automatically logged in the cow's history.</p>
         
-        <h3>2. Dosing & Vaccination Chore Boards</h3>
-        <p>Review active vet supplements on the <strong>Task Board</strong>. Checking off a vaccination schedules it complete and automatically records the medical treatment in the respective animal's history feeds.</p>
+        <h3>2. Dosing & Vaccination Tasks</h3>
+        <p>Review active vet tasks on the <strong>Task Board</strong>. Checking off a task marks it complete and automatically records the treatment in the animal's history.</p>
 
         <h3>3. Defining Pasture Boundaries</h3>
-        <p>Create fields dynamically by clicking **Add Pasture** next to the map tab. Specify sizes and Sweetveld vs Sourveld grass soil classes. For safety, you are prevented from deleting a field until it is rotated completely empty of cattle.</p>
+        <p>Create paddocks by clicking <strong>Add Pasture</strong> in the map tab. Specify sizes and veld types. You cannot delete a pasture until all cattle have been moved out of it.</p>
 
-        <h2>Zero-Cost Distribution</h2>
-        <p>You can ZIP your project folder and WhatsApp it to neighboring farmers in the Eastern Cape. They can extract the ZIP and double-click <code>index.html</code> to run the entire app offline instantly with <strong>zero installation costs</strong>.</p>
+        <h2>Backing Up Your Data</h2>
+        <p>Go to <strong>Data Settings</strong> and click <strong>Export to CSV</strong> or <strong>Export JSON</strong> to download a complete backup of your herd records. You can open the CSV in Excel or LibreOffice at any time.</p>
+
+        <h2>Importing Data</h2>
+        <p>In <strong>Data Settings</strong>, click the import box to upload a CSV or JSON file. The CSV should have columns: Tag ID, Name, Breed, Gender, Date of Birth, Status, Current Pasture, Is Pregnant, Expected Calving Date, Insemination Method, Dam Tag, Sire Tag, Purchase Date, Purchase Price, Supplier, Sale Date, Sale Price, Buyer.</p>
     `;
 }
 
