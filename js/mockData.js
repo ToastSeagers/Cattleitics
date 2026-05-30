@@ -256,9 +256,17 @@ const MOCK_TASKS = [
 ];
 
 /**
- * Initialize Database with Mock data if it's empty
+ * Initialize Database with Mock data if it's empty.
+ * In Supabase cloud mode, new users start with a clean slate.
+ * Mock data is only seeded for local server or offline modes.
  */
 async function initializeDatabaseIfEmpty(dbInstance) {
+    // Don't seed mock data for cloud users - they start fresh
+    if (dbInstance.mode === 'supabase') {
+        console.log("Cloud mode: user starts with their own data (no mock seeding).");
+        return;
+    }
+
     const cattle = await dbInstance.getAllCattle();
     const tasks = await dbInstance.getAllTasks();
 

@@ -26,12 +26,151 @@ let activeDrawingPaddockId = null;
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await db.init();
-        
+
+        // If we're in a cloud-capable environment (not local server), handle auth
+        if (db.mode !== 'server' && window.supabase) {
+            // Initialize Supabase client for auth checks even if not yet signed in
+            if (!db.supabase) {
+                db.supabase = window.supabase.createClient(
+                    'https://pgerylvrwlyhviptwtym.supabase.co',
+                    'sb_publishable_s-Ckau-hOE1wxEbQaiTziw_URHdCODa'
+                );
+            }
+
+            // Check for existing session
+            const { data: { session } } = await db.supabase.auth.getSession();
+            if (session) {
+                db.user = session.user;
+                db.mode = 'supabase';
+                db.storageMode = 'Cloud Sync (Supabase)';
+            } else {
+                // Show auth screen and wait for login
+                showAuthScreen();
+                bindAuthHandlers();
+                return; // Don't load app until authenticated
+            }
+
+            // Listen for auth changes (logout, session expiry)
+            db.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    showAuthScreen();
+                }
+            });
+        }
+
+        // Continue with normal app initialization
+        await initializeApp();
+
+    } catch (err) {
+        console.error("Critical error starting Cattleitics:", err);
+        alert("Failed to initialize database. Please reload the browser.");
+    }
+});
+
+/**
+ * Shows the authentication screen overlay.
+ */
+function showAuthScreen() {
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) authScreen.style.display = 'flex';
+    document.querySelector('.app-container').style.display = 'none';
+}
+
+/**
+ * Hides auth screen and shows the main app.
+ */
+function hideAuthScreen() {
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) authScreen.style.display = 'none';
+    document.querySelector('.app-container').style.display = '';
+}
+
+/**
+ * Binds login/signup form handlers.
+ */
+function bindAuthHandlers() {
+    // Toggle between login and signup
+    document.getElementById('show-signup').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('auth-login-box').style.display = 'none';
+        document.getElementById('auth-signup-box').style.display = 'block';
+    });
+
+    document.getElementById('show-login').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('auth-signup-box').style.display = 'none';
+        document.getElementById('auth-login-box').style.display = 'block';
+    });
+
+    // Login form
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+        errorEl.style.display = 'none';
+
+        try {
+            await db.signIn(email, password);
+            hideAuthScreen();
+            await initializeApp();
+        } catch (err) {
+            errorEl.textContent = err.message || 'Sign in failed. Check your credentials.';
+            errorEl.style.display = 'block';
+        }
+    });
+
+    // Signup form
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const farm = document.getElementById('signup-farm').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirm = document.getElementById('signup-password-confirm').value;
+        const errorEl = document.getElementById('signup-error');
+        errorEl.style.display = 'none';
+
+        if (password !== confirm) {
+            errorEl.textContent = 'Passwords do not match.';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        try {
+            await db.signUp(email, password, farm);
+            // Save farm name as a setting
+            if (db.mode === 'supabase') {
+                await db.saveSetting('farm_name', farm);
+            }
+            hideAuthScreen();
+            await initializeApp();
+        } catch (err) {
+            errorEl.textContent = err.message || 'Sign up failed. Please try again.';
+            errorEl.style.display = 'block';
+        }
+    });
+}
+
+/**
+ * Core app initialization (called after auth is confirmed or in local/offline mode).
+ */
+async function initializeApp() {
         // Show storage mode status badge in the sidebar
         const statusBadge = document.getElementById('storage-status-badge');
         if (statusBadge) {
-            const color = db.isServerMode ? 'var(--success)' : 'var(--warning)';
+            const isCloud = db.mode === 'supabase';
+            const isServer = db.mode === 'server';
+            const color = (isCloud || isServer) ? 'var(--success)' : 'var(--warning)';
             statusBadge.innerHTML = `<i class="fa-solid fa-circle" style="color: ${color}; font-size: 0.55rem; margin-right: 0.25rem;"></i> ${db.storageMode}`;
+        }
+
+        // Hide shutdown button in cloud mode (not relevant)
+        if (db.mode === 'supabase') {
+            const shutdownBtn = document.getElementById('btn-shutdown-server');
+            if (shutdownBtn) shutdownBtn.style.display = 'none';
+
+            // Add sign out option
+            addSignOutButton();
         }
 
         await initializeDatabaseIfEmpty(db);
@@ -53,11 +192,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderTasks();
 
         console.log("Cattleitics Application fully loaded in storage mode: " + db.storageMode);
-    } catch (err) {
-        console.error("Critical error starting Cattleitics:", err);
-        alert("Failed to initialize database. Please reload the browser.");
-    }
-});
+}
+
+/**
+ * Adds a sign-out button to the sidebar for cloud users.
+ */
+function addSignOutButton() {
+    const nav = document.querySelector('.nav-links');
+    if (!nav || document.getElementById('btn-signout')) return;
+
+    const li = document.createElement('li');
+    li.className = 'nav-item signout-item';
+    li.id = 'btn-signout';
+    li.style.marginTop = '1rem';
+    li.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
+    li.innerHTML = `<a href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>`;
+    li.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await db.signOut();
+        window.location.reload();
+    });
+    nav.appendChild(li);
+}
 
 /**
  * Loads list values from IndexedDB into memory.
