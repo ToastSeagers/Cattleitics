@@ -190,6 +190,12 @@ async function initializeApp() {
             const hasCompletedOnboarding = await db.getSetting('onboarding_complete').catch(() => null);
             if (cattle.length === 0 && !hasCompletedOnboarding) {
                 showOnboardingScreen();
+                // Pre-fill farm name from signup if available
+                const savedFarm = await db.getSetting('farm_name').catch(() => null);
+                if (savedFarm) {
+                    const nameInput = document.getElementById('onboarding-farm-name');
+                    if (nameInput) nameInput.value = savedFarm;
+                }
                 bindOnboardingHandlers();
                 return;
             }
@@ -222,20 +228,78 @@ async function initializeApp() {
 function showOnboardingScreen() {
     document.getElementById('onboarding-screen').style.display = 'flex';
     document.querySelector('.app-container').style.display = 'none';
+
+    // Initialize the onboarding map after a brief delay (DOM needs to be visible)
+    setTimeout(() => {
+        initOnboardingMap();
+    }, 200);
+}
+
+/** Onboarding map instance and marker */
+let onboardingMap = null;
+let onboardingMarker = null;
+let onboardingCoords = { lat: -31.5, lng: 26.5 }; // Default: central Eastern Cape
+
+/**
+ * Initializes the Leaflet map on the onboarding screen.
+ */
+function initOnboardingMap() {
+    if (onboardingMap) return; // Already initialized
+
+    onboardingMap = L.map('onboarding-map').setView([onboardingCoords.lat, onboardingCoords.lng], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 18
+    }).addTo(onboardingMap);
+
+    // Click to place marker
+    onboardingMap.on('click', (e) => {
+        onboardingCoords = { lat: e.latlng.lat, lng: e.latlng.lng };
+
+        if (onboardingMarker) {
+            onboardingMarker.setLatLng(e.latlng);
+        } else {
+            onboardingMarker = L.marker(e.latlng, { draggable: true }).addTo(onboardingMap);
+            onboardingMarker.on('dragend', (ev) => {
+                const pos = ev.target.getLatLng();
+                onboardingCoords = { lat: pos.lat, lng: pos.lng };
+                document.getElementById('onboarding-coords').textContent = `📍 ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+            });
+        }
+
+        document.getElementById('onboarding-coords').textContent = `📍 ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+    });
 }
 
 /**
  * Hides onboarding and launches the main app.
  */
 async function finishOnboarding() {
+    // Save farm name
+    const farmNameInput = document.getElementById('onboarding-farm-name');
+    const farmName = farmNameInput ? farmNameInput.value.trim() : '';
+    if (farmName) {
+        try { await db.saveSetting('farm_name', farmName); } catch (e) { console.warn(e); }
+    }
+
+    // Save farm location coordinates
+    if (onboardingCoords) {
+        try { await db.saveSetting('farm_location', onboardingCoords); } catch (e) { console.warn(e); }
+    }
+
+    // Mark onboarding complete
+    try { await db.saveSetting('onboarding_complete', true); } catch (e) { console.warn(e); }
+
+    // Clean up onboarding map
+    if (onboardingMap) {
+        onboardingMap.remove();
+        onboardingMap = null;
+        onboardingMarker = null;
+    }
+
     document.getElementById('onboarding-screen').style.display = 'none';
     document.querySelector('.app-container').style.display = '';
-    
-    try {
-        await db.saveSetting('onboarding_complete', true);
-    } catch (err) {
-        console.warn("Could not save onboarding status:", err.message);
-    }
 
     await initializeDatabaseIfEmpty(db);
     await loadAppState();
@@ -787,7 +851,7 @@ function getCategoryColor(category) {
 /**
  * Renders the detailed GIS Pastures Satellite Map and overlays.
  */
-function renderPasturesView() {
+async function renderPasturesView() {
     const mapContainer = document.getElementById('farm-gis-map');
     if (!mapContainer) return;
     
@@ -801,9 +865,14 @@ function renderPasturesView() {
 
     // 1. Initialize Map once if not already done
     if (!farmMap) {
+        // Use saved farm location or default to Eastern Cape
+        const savedLocation = await db.getSetting('farm_location').catch(() => null);
+        const mapCenter = savedLocation ? [savedLocation.lat, savedLocation.lng] : [-33.362718, 26.503312];
+        const mapZoom = savedLocation ? 15 : 16;
+
         farmMap = L.map('farm-gis-map', {
             zoomControl: false
-        }).setView([-33.362718, 26.503312], 16);
+        }).setView(mapCenter, mapZoom);
 
         L.control.zoom({
             position: 'topleft'
@@ -2082,24 +2151,28 @@ function bindDataOperations() {
 
     // 6. Reload Mock data
     document.getElementById('btn-reload-mocks').addEventListener('click', async () => {
-        if (confirm("This will overwrite/reload the demo mock database. Proceed?")) {
+        if (confirm("This will load demo cattle data into your account. Proceed?")) {
             await db.clearAllCattle();
             // Clear tasks to re-initialize them
             const tasks = await db.getAllTasks();
             for (const t of tasks) {
                 await db.deleteTask(t.id);
             }
-            await db.saveSetting('paddocks', null);
-            await db.saveSetting('farm_name', null);
+
+            // Load mock data regardless of mode
+            console.log("Loading demo data...");
+            await db.bulkSaveCattle(MOCK_CATTLE);
+            for (const task of MOCK_TASKS) {
+                await db.saveTask(task);
+            }
+            await db.savePaddocks(MOCK_PADDOCKS);
             
-            await initializeDatabaseIfEmpty(db);
             await loadAppState();
-            
             renderDashboard();
             renderCattleHerd();
             renderPasturesView();
             renderTasks();
-            alert("Mock database initialized successfully.");
+            alert("Demo data loaded successfully (" + MOCK_CATTLE.length + " cattle records).");
         }
     });
 }

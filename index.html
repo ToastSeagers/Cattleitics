@@ -79,55 +79,65 @@
 
     <!-- ==================== ONBOARDING SCREEN (New Users) ==================== -->
     <div class="auth-overlay" id="onboarding-screen" style="display: none;">
-        <div class="onboarding-container">
+        <div class="onboarding-container" style="max-width: 650px;">
             <div class="auth-logo">
                 <div class="logo-icon" style="width: 60px; height: 60px; font-size: 1.5rem;">CT</div>
                 <h1 style="color: var(--gold); font-size: 1.8rem; margin-top: 0.75rem;">Welcome to Cattleitics</h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Let's get your herd set up</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Let's set up your farm</p>
             </div>
 
-            <div class="auth-form-box" style="max-width: 550px; margin: 0 auto;">
-                <h3><i class="fa-solid fa-cow"></i> Import Your Herd</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem; line-height: 1.5;">
-                    The fastest way to get started is to download our CSV template, fill it in with your current cattle records using Excel or LibreOffice, then upload it here. You can also skip this and add cattle manually later.
-                </p>
+            <div class="auth-form-box" style="max-width: 600px; margin: 0 auto;">
 
-                <!-- Step 1: Download template -->
+                <!-- Step 1: Farm Name -->
                 <div class="onboarding-step">
                     <div class="onboarding-step-number">1</div>
                     <div class="onboarding-step-content">
-                        <h4>Download the CSV template</h4>
-                        <p>Open this in Excel or any spreadsheet app and fill in your herd details.</p>
-                        <button class="btn btn-secondary" id="btn-download-template" style="margin-top: 0.5rem;">
-                            <i class="fa-solid fa-download"></i> Download Template (CSV)
-                        </button>
+                        <h4>Name your farm</h4>
+                        <p>This appears in the sidebar and on your exports.</p>
+                        <input type="text" class="form-control" id="onboarding-farm-name" placeholder="e.g. Riverside Farm" style="margin-top: 0.5rem;">
                     </div>
                 </div>
 
-                <!-- Step 2: Upload filled template -->
+                <!-- Step 2: Map Location -->
                 <div class="onboarding-step">
                     <div class="onboarding-step-number">2</div>
                     <div class="onboarding-step-content">
-                        <h4>Upload your completed spreadsheet</h4>
-                        <p>Once you've filled in your cattle data, upload the CSV file here.</p>
-                        <div class="upload-box" id="onboarding-upload-box" style="margin-top: 0.5rem; padding: 1rem;">
+                        <h4>Set your farm location</h4>
+                        <p>Click on the map to place a pin where your farm is. This centres your pasture map. You can adjust it later.</p>
+                        <div id="onboarding-map" style="height: 250px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 0.5rem;"></div>
+                        <p id="onboarding-coords" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem;"></p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Import Herd -->
+                <div class="onboarding-step">
+                    <div class="onboarding-step-number">3</div>
+                    <div class="onboarding-step-content">
+                        <h4>Import your herd (optional)</h4>
+                        <p>Download our CSV template, fill it in with your cattle records in Excel, then upload it here. You can skip this and add cattle manually later.</p>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary btn-sm" id="btn-download-template">
+                                <i class="fa-solid fa-download"></i> Download Template
+                            </button>
+                        </div>
+                        <div class="upload-box" id="onboarding-upload-box" style="margin-top: 0.75rem; padding: 1rem;">
                             <i class="fa-solid fa-file-arrow-up"></i>
-                            <p style="font-weight: 600; font-size: 0.85rem;">Click to upload your CSV</p>
+                            <p style="font-weight: 600; font-size: 0.85rem;">Click to upload your completed CSV</p>
                             <input type="file" id="onboarding-import-file" style="display: none;" accept=".csv,.json">
                         </div>
                         <div id="onboarding-upload-status" style="display: none; margin-top: 0.5rem; font-size: 0.85rem;"></div>
                     </div>
                 </div>
 
-                <!-- Actions -->
-                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: center;">
-                    <button class="btn btn-primary" id="btn-onboarding-finish" style="flex: 1; justify-content: center;">
+                <!-- Finish -->
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn btn-primary" id="btn-onboarding-finish" style="width: 100%; justify-content: center; padding: 0.8rem;">
                         <i class="fa-solid fa-check"></i> Start Using Cattleitics
                     </button>
+                    <p style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
+                        All settings can be changed later from the Data Settings page.
+                    </p>
                 </div>
-                <p style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
-                    You can always import more data later from the Data Settings page.
-                </p>
             </div>
         </div>
     </div>
