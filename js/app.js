@@ -184,6 +184,15 @@ async function initializeApp() {
 
             // Add sign out option
             addSignOutButton();
+
+            // Check if this is a new user (no cattle yet) - show onboarding
+            const cattle = await db.getAllCattle();
+            const hasCompletedOnboarding = await db.getSetting('onboarding_complete').catch(() => null);
+            if (cattle.length === 0 && !hasCompletedOnboarding) {
+                showOnboardingScreen();
+                bindOnboardingHandlers();
+                return;
+            }
         }
 
         await initializeDatabaseIfEmpty(db);
@@ -205,6 +214,173 @@ async function initializeApp() {
         renderTasks();
 
         console.log("Cattleitics Application fully loaded in storage mode: " + db.storageMode);
+}
+
+/**
+ * Shows the onboarding screen for new users.
+ */
+function showOnboardingScreen() {
+    document.getElementById('onboarding-screen').style.display = 'flex';
+    document.querySelector('.app-container').style.display = 'none';
+}
+
+/**
+ * Hides onboarding and launches the main app.
+ */
+async function finishOnboarding() {
+    document.getElementById('onboarding-screen').style.display = 'none';
+    document.querySelector('.app-container').style.display = '';
+    
+    try {
+        await db.saveSetting('onboarding_complete', true);
+    } catch (err) {
+        console.warn("Could not save onboarding status:", err.message);
+    }
+
+    await initializeDatabaseIfEmpty(db);
+    await loadAppState();
+    bindViewRouting();
+    bindFiltering();
+    bindFormHandlers();
+    bindModals();
+    bindDataOperations();
+    renderDashboard();
+    renderCattleHerd();
+    renderPasturesView();
+    renderTasks();
+}
+
+/**
+ * Binds onboarding screen event handlers.
+ */
+function bindOnboardingHandlers() {
+    // Download CSV template
+    document.getElementById('btn-download-template').addEventListener('click', () => {
+        const headers = [
+            'Tag ID', 'Name', 'Breed', 'Gender', 'Date of Birth', 'Status',
+            'Current Pasture', 'Is Pregnant (TRUE/FALSE)', 'Expected Calving Date',
+            'Insemination Method', 'Dam Tag', 'Sire Tag', 'Purchase Date',
+            'Purchase Price (ZAR)', 'Supplier', 'Sale Date', 'Sale Price (ZAR)', 'Buyer'
+        ];
+        const exampleRow = [
+            'NGU-001', 'Bessie', 'Nguni', 'Cow', '2019-05-15', 'Active',
+            'House Paddock', 'TRUE', '2025-11-01', 'Bull (Themba)',
+            '', '', '2020-03-10', '12000', 'Local Auction', '', '', ''
+        ];
+        const csv = headers.join(',') + '\n' + exampleRow.join(',') + '\n';
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', 'cattleitics_herd_template.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // Upload CSV file
+    const uploadBox = document.getElementById('onboarding-upload-box');
+    const fileInput = document.getElementById('onboarding-import-file');
+    const statusEl = document.getElementById('onboarding-upload-status');
+
+    uploadBox.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--text-muted)';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing file...';
+
+        try {
+            const text = await file.text();
+            let cattleList = [];
+
+            if (file.name.endsWith('.json')) {
+                cattleList = JSON.parse(text);
+            } else {
+                cattleList = parseCSVImport(text);
+            }
+
+            if (cattleList.length === 0) {
+                statusEl.style.color = 'var(--danger)';
+                statusEl.textContent = 'No valid cattle records found in file.';
+                return;
+            }
+
+            await db.bulkSaveCattle(cattleList);
+            statusEl.style.color = 'var(--success)';
+            statusEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> Successfully imported ${cattleList.length} cattle records!`;
+        } catch (err) {
+            statusEl.style.color = 'var(--danger)';
+            statusEl.textContent = 'Error: ' + (err.message || 'Could not process file.');
+        }
+    });
+
+    // Finish onboarding
+    document.getElementById('btn-onboarding-finish').addEventListener('click', async () => {
+        await finishOnboarding();
+    });
+}
+
+/**
+ * Parses a CSV file into cattle objects for import.
+ */
+function parseCSVImport(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    if (lines.length < 2) return [];
+
+    const results = [];
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const cols = parseCSVRow(line);
+        if (cols.length < 4) continue;
+
+        const tagId = (cols[0] || '').trim();
+        if (!tagId) continue;
+
+        results.push({
+            tagId: tagId,
+            name: cols[1] || '',
+            breed: cols[2] || 'Nguni',
+            gender: cols[3] || 'Cow',
+            dob: cols[4] || '',
+            status: cols[5] || 'Active',
+            pasture: cols[6] || '',
+            pregnant: cols[7] ? cols[7].toUpperCase() === 'TRUE' : false,
+            expectedCalvingDate: cols[8] || null,
+            inseminationMethod: cols[9] || null,
+            dam: cols[10] || '',
+            sire: cols[11] || '',
+            purchaseDate: cols[12] || '',
+            purchasePrice: Number(cols[13]) || 0,
+            supplier: cols[14] || '',
+            saleDate: cols[15] || null,
+            salePrice: cols[16] ? Number(cols[16]) : null,
+            buyer: cols[17] || null,
+            image: '',
+            history: []
+        });
+    }
+    return results;
+}
+
+/**
+ * Simple CSV row parser handling quoted fields.
+ */
+function parseCSVRow(text) {
+    let p = '', r = [], q = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') { q = !q; }
+        else if (c === ',' && !q) { r.push(p); p = ''; }
+        else { p += c; }
+    }
+    r.push(p);
+    return r;
 }
 
 /**
@@ -253,6 +429,8 @@ async function loadAppState() {
         console.warn("Could not load farm name:", err.message);
     }
     document.querySelector('.logo-text span').textContent = farmName;
+    const farmNameLabel = document.getElementById('farm-name-label');
+    if (farmNameLabel) farmNameLabel.textContent = farmName;
     document.getElementById('settings-farm-name').value = farmName;
     
     // Populate form pasture and parent selectors
@@ -299,7 +477,7 @@ function bindViewRouting() {
                     renderCattleHerd();
                     break;
                 case 'pastures-view':
-                    viewTitle.textContent = "Glenthorpe Pasture Rotations";
+                    viewTitle.textContent = "Pasture Rotations";
                     viewSubtitle.textContent = "Manage paddock density, movement logs, and grazing load";
                     renderPasturesView();
                     if (farmMap) {
@@ -546,7 +724,7 @@ function renderCattleHerd() {
         container.innerHTML = `<div class="settings-card span-2" style="text-align: center; width: 100%; grid-column: span 3; padding: 3rem;">
             <i class="fa-solid fa-cow" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
             <h3>No matching cattle found</h3>
-            <p>Try clearing your filters or add a new cow record to your Glenthorpe register.</p>
+            <p>Try clearing your filters or add a new cattle record to your herd register.</p>
         </div>`;
         return;
     }
@@ -1002,7 +1180,7 @@ function bindFormHandlers() {
             sire: document.getElementById('form-sire').value || '',
             image: base64Image,
             history: originalTag ? (currentCattleList.find(c => c.tagId === originalTag).history || []) : [
-                { id: Date.now(), date: new Date().toISOString().split('T')[0], type: 'Financial', description: 'Cattle profile initial registration on Glenthorpe register.', performer: 'Toast Seagers' }
+                { id: Date.now(), date: new Date().toISOString().split('T')[0], type: 'Financial', description: 'Cattle profile initial registration.', performer: '' }
             ]
         };
 
@@ -1398,7 +1576,7 @@ function bindModals() {
 
     document.getElementById('btn-profile-delete').addEventListener('click', async () => {
         if (activeTargetCowTag) {
-            if (confirm(`Permanently delete ear tag GT cow record: "${activeTargetCowTag}" from Glenthorpe register?`)) {
+            if (confirm(`Permanently delete cattle record: "${activeTargetCowTag}" from your herd register?`)) {
                 await db.deleteCow(activeTargetCowTag);
                 await loadAppState();
                 document.getElementById('cow-details-modal').classList.remove('active');
@@ -1494,7 +1672,7 @@ function bindModals() {
         } else {
             shutdownBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                if (confirm("Are you sure you want to save all data and shutdown the Glenthorpe Cattleitics server? This browser tab will be closed automatically.")) {
+                if (confirm("Are you sure you want to save all data and shutdown the Cattleitics server? This browser tab will be closed automatically.")) {
                     try {
                         const response = await fetch('/api/shutdown', { method: 'POST' });
                         if (response.ok) {
@@ -1503,7 +1681,7 @@ function bindModals() {
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #060a07; color: var(--text-main); font-family: 'Outfit', sans-serif; text-align: center; padding: 2rem;">
                                     <div style="width: 80px; height: 80px; border-radius: 50%; background-color: rgba(217, 4, 41, 0.1); border: 2px solid var(--danger); display: flex; align-items: center; justify-content: center; color: var(--danger); font-size: 2.5rem; margin-bottom: 1.5rem; animation: pulse 2s infinite;"><i class="fa-solid fa-power-off"></i></div>
                                     <h1 style="color: var(--gold); margin-bottom: 0.5rem; font-size: 2rem;">Server Shutdown Successful</h1>
-                                    <p style="color: var(--text-muted); max-width: 450px; line-height: 1.5; font-size: 1rem;">Glenthorpe Cattleitics database has been physically synchronized and saved. The local Node.js server process was terminated successfully. You can now close this tab safely.</p>
+                                    <p style="color: var(--text-muted); max-width: 450px; line-height: 1.5; font-size: 1rem;">Cattleitics database has been physically synchronized and saved. The local Node.js server process was terminated successfully. You can now close this tab safely.</p>
                                 </div>
                             `;
                             // Try to auto-close browser tab
@@ -1904,7 +2082,7 @@ function bindDataOperations() {
 
     // 6. Reload Mock data
     document.getElementById('btn-reload-mocks').addEventListener('click', async () => {
-        if (confirm("This will overwrite/reload the South African mock database of Glenthorpe cattle. Proceed?")) {
+        if (confirm("This will overwrite/reload the demo mock database. Proceed?")) {
             await db.clearAllCattle();
             // Clear tasks to re-initialize them
             const tasks = await db.getAllTasks();
@@ -1975,7 +2153,7 @@ function exportHerdToCSV() {
     const link = document.createElement('a');
     const dateStr = new Date().toISOString().split('T')[0];
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', `glenthorpe_cattleistics_backup_${dateStr}.csv`);
+    link.setAttribute('download', `cattleitics_backup_${dateStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2001,7 +2179,7 @@ function exportHerdToJSON() {
     const link = document.createElement('a');
     const dateStr = new Date().toISOString().split('T')[0];
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', `glenthorpe_cattleistics_raw_backup_${dateStr}.json`);
+    link.setAttribute('download', `cattleitics_backup_${dateStr}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2439,7 +2617,7 @@ async function loadAndRenderReadme() {
     container.innerHTML = `
         <div class="pasture-desc" style="text-align: center; padding: 3rem;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; margin-bottom: 0.75rem; color: var(--gold)"></i>
-            <p>Loading Glenthorpe Cattleitics User Manual...</p>
+            <p>Loading Cattleitics User Manual...</p>
         </div>
     `;
 
@@ -2456,7 +2634,7 @@ async function loadAndRenderReadme() {
 
     // Portable Offline User Manual HTML fallback
     container.innerHTML = `
-        <h1>Glenthorpe Cattleitics User Manual</h1>
+        <h1>Cattleitics User Manual</h1>
         <p>Your agricultural registers are currently operating in <strong>Offline Browser Mode (IndexedDB)</strong>.</p>
         
         <blockquote style="border-left-color: var(--warning); background-color: rgba(247, 127, 0, 0.05);">

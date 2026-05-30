@@ -1817,3 +1817,54 @@ h1, h2, h3, h4, h5, h6 {
 .nav-item.signout-item a:hover {
     color: var(--gold);
 }
+
+/* ==================== ONBOARDING SCREEN ==================== */
+.onboarding-container {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.onboarding-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: left;
+    padding: 1rem 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.onboarding-step:last-of-type {
+    border-bottom: none;
+}
+
+.onboarding-step-number {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: linear-gradient(135deg, var(--gold), #b8921e);
+    color: var(--primary-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+}
+
+.onboarding-step-content {
+    flex: 1;
+}
+
+.onboarding-step-content h4 {
+    color: var(--text-main);
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.onboarding-step-content p {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
