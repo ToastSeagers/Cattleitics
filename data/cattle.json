@@ -1,0 +1,1904 @@
+[
+  {
+    "tagId": "R-MASH",
+    "name": "Mashiya",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-09-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "high_field",
+    "purchasePrice": 9000,
+    "purchaseDate": "",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/5_R-Mashiya.png",
+    "history": [
+      {
+        "id": 1005,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 2/3 months pregnant."
+      },
+      {
+        "id": 1004,
+        "date": "2024-08-25",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-5. Sire: Barrack. Sold 220kg @R36/kg at 7mo 27days."
+      },
+      {
+        "id": 1003,
+        "date": "2023-02-22",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-2 'Cecile'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 1002,
+        "date": "2021-11-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V21-3 'Cheddar'. Sire: Vrystaat."
+      },
+      {
+        "id": 1001,
+        "date": "2020-09-14",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-4 'Batgirl'. Sire: Vrystaat."
+      },
+      {
+        "id": 1780040362697,
+        "date": "2026-05-29",
+        "type": "Move",
+        "description": "Relocated from Unknown Pasture to High Field. Reason: Pasture rotation.",
+        "performer": "Toast Seagers"
+      }
+    ]
+  },
+  {
+    "tagId": "R-BAT",
+    "name": "Batisi",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 9000,
+    "purchaseDate": "2020-01-01",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/6_R-18-Batisi.png",
+    "history": [
+      {
+        "id": 1101,
+        "date": "2020-12-12",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-7 'Africa'. Sire: Vrystaat/Bathurst bull."
+      },
+      {
+        "id": 1102,
+        "date": "2022-10-06",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B22-4 'Jina'. Sire: Barrack."
+      },
+      {
+        "id": 1103,
+        "date": "2024-01-31",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-3 'Umlozi'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 1104,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "R-MKS",
+    "name": "Mama ka Socks",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-09-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 8500,
+    "purchaseDate": "",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/8_R-Mama ka Socks.jpg",
+    "history": [
+      {
+        "id": 1201,
+        "date": "2020-09-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-3 'Socks'. Sire: Vrystaat."
+      },
+      {
+        "id": 1202,
+        "date": "2021-10-04",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat."
+      },
+      {
+        "id": 1203,
+        "date": "2022-10-06",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-5. Sire: Barrack. Sold 172kg @R35/kg at 12mo 2weeks."
+      },
+      {
+        "id": 1204,
+        "date": "2023-10-18",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-12. Sire: Barrack. Brown. Sold at 9mo 2weeks."
+      },
+      {
+        "id": 1205,
+        "date": "2024-09-12",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-11. Sire: Barrack. Sold 192kg @R36/kg at 7mo 2weeks."
+      },
+      {
+        "id": 1206,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "R-ENO",
+    "name": "Enocent",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 9000,
+    "purchaseDate": "2019-01-01",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/9_R-Enocent.jpg",
+    "history": [
+      {
+        "id": 1301,
+        "date": "2020-06-30",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat."
+      },
+      {
+        "id": 1302,
+        "date": "2021-10-10",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V21-1 'Mbambo'. Sire: Vrystaat."
+      },
+      {
+        "id": 1303,
+        "date": "2022-10-09",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-6. Sire: Barrack. Sold at 1yr 4months."
+      },
+      {
+        "id": 1304,
+        "date": "2023-10-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-14 'Marmite'. Sire: Barrack. Black."
+      },
+      {
+        "id": 1305,
+        "date": "2024-09-18",
+        "type": "Pregnancy",
+        "description": "Gave birth to female calf B24-14 'Prof'. Sire: Barrack."
+      },
+      {
+        "id": 1306,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "R-MARY",
+    "name": "Mary",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 9000,
+    "purchaseDate": "2019-01-01",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/10_R-Mary.jpg",
+    "history": [
+      {
+        "id": 1401,
+        "date": "2020-07-04",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-2 'Brandy'. Calf needed help being delivered."
+      },
+      {
+        "id": 1402,
+        "date": "2021-10-18",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. All brown. Sold 18 May 2022."
+      },
+      {
+        "id": 1403,
+        "date": "2023-03-13",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-05. Sire: Barrack. Sold 222kg @R35/kg at 11 months."
+      },
+      {
+        "id": 1404,
+        "date": "2024-08-25",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-07. Sire: Barrack. Sold 220kg @R36/kg at 8 months."
+      },
+      {
+        "id": 1405,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "R-YIN",
+    "name": "Yin",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": null,
+    "purchaseDate": "",
+    "supplier": "",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/11_R-Yin.jpg",
+    "history": [
+      {
+        "id": 1501,
+        "date": "2020-10-09",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-6 'Beauty'. Sire: Vrystaat."
+      },
+      {
+        "id": 1502,
+        "date": "2021-11-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V21-4 'Yang'. Sire: Vrystaat."
+      },
+      {
+        "id": 1503,
+        "date": "2023-03-20",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-7 'Ribbon'. Sire: Barrack."
+      },
+      {
+        "id": 1504,
+        "date": "2024-11-09",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-18 'Zen'. Sire: Barrack."
+      },
+      {
+        "id": 1505,
+        "date": "2025-05-16",
+        "type": "Health",
+        "description": "PT - not pregnant, cycling."
+      }
+    ]
+  },
+  {
+    "tagId": "R-CHIP",
+    "name": "Chip",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2014-01-01",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2014-01-01",
+    "supplier": "Rodney (gift)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/12_R-14-Chip.jpg",
+    "history": [
+      {
+        "id": 1601,
+        "date": "2020-06-23",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-1 'Brenda'. Sire: Vrystaat. All black."
+      },
+      {
+        "id": 1602,
+        "date": "2021-10-23",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat. Sold 9 Aug - R28/kg - 160kg."
+      },
+      {
+        "id": 1603,
+        "date": "2023-03-08",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-04 'Frita'. Sire: Barrack."
+      },
+      {
+        "id": 1604,
+        "date": "2024-10-02",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-15. Sire: Barrack. Sold 8 May - 7mo - 182kg @R36/kg. All brown."
+      },
+      {
+        "id": 1605,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "VK-16-149",
+    "name": "VK 16-149",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2016-01-01",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "house_pasture",
+    "purchasePrice": 20000,
+    "purchaseDate": "2021-01-01",
+    "supplier": "Andrew van Kerken",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/13_VK-16-149.png",
+    "history": [
+      {
+        "id": 1705,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      },
+      {
+        "id": 1704,
+        "date": "2024-11-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-22 'Clyde'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 1703,
+        "date": "2024-01-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-02. Sire: Barrack. All brown."
+      },
+      {
+        "id": 1702,
+        "date": "2023-01-20",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-01 'Bonnie'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 1701,
+        "date": "2021-03-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf 21-67. Bought with this calf at foot."
+      },
+      {
+        "id": 1780069885896,
+        "date": "2026-05-29",
+        "type": "Move",
+        "description": "Relocated from Unknown Pasture to House Pasture. Reason: Pasture rotation.",
+        "performer": "Toast Seagers"
+      }
+    ]
+  },
+  {
+    "tagId": "AV-21-67",
+    "name": "21-67",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2021-03-01",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-09-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "VK-16-149",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2021-03-01",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/AV-21-67.png",
+    "history": [
+      {
+        "id": 1801,
+        "date": "2023-11-30",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-16 'Elizabedi'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 1802,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-7",
+    "name": "Africa",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-12-12",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-BAT",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-12-12",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/14_V20-7-Africa.png",
+    "history": [
+      {
+        "id": 1901,
+        "date": "2022-11-03",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-8. Sire: Barrack. Sold 206kg @R35/kg at 1yr 3.5mo."
+      },
+      {
+        "id": 1902,
+        "date": "2023-12-08",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-17. Sire: Barrack. Sold 170kg @R32/kg at 10 months."
+      },
+      {
+        "id": 1903,
+        "date": "2024-11-21",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-20 'Azania'. Sire: Barrack."
+      },
+      {
+        "id": 1904,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-4",
+    "name": "Batgirl",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-09-14",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-09-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-MASH",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-09-14",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/V20-4-Batgirl.png",
+    "history": [
+      {
+        "id": 2001,
+        "date": "2021-12-01",
+        "type": "Health",
+        "description": "Ate metre length of hosepipe."
+      },
+      {
+        "id": 2002,
+        "date": "2023-09-30",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-9. Sire: Barrack. Sold at 10 months."
+      },
+      {
+        "id": 2003,
+        "date": "2024-11-06",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-17 'Galloway'. Sire: Barrack."
+      },
+      {
+        "id": 2004,
+        "date": "2025-03-23",
+        "type": "Health",
+        "description": "Injured leg/shoulder in the crush race."
+      },
+      {
+        "id": 2005,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 3-4 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-6",
+    "name": "Beauty",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-10-09",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-YIN",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-10-09",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/15_V20-6-Beauty.png",
+    "history": [
+      {
+        "id": 2101,
+        "date": "2022-10-17",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B22-7 'Lihle'. Sire: Barrack."
+      },
+      {
+        "id": 2102,
+        "date": "2024-09-04",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-8 'Amore'. Sire: Barrack."
+      },
+      {
+        "id": 2103,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-2",
+    "name": "Brandy",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-07-04",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-09-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-MARY",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-07-04",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/16_V20-2-Brandy.png",
+    "history": [
+      {
+        "id": 2201,
+        "date": "2022-09-21",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-2. Sire: Barrack. Sold 200kg @R35/kg at 13mo. All brown."
+      },
+      {
+        "id": 2202,
+        "date": "2024-09-07",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-9. Sire: Barrack. Sold 214kg @R36/kg at 7mo 2weeks."
+      },
+      {
+        "id": 2203,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-1",
+    "name": "Brenda",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-06-23",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-CHIP",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-06-23",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/V20-1-Brenda.png",
+    "history": [
+      {
+        "id": 2301,
+        "date": "2023-10-23",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-13 'Fassie'. Sire: Barrack."
+      },
+      {
+        "id": 2302,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-5",
+    "name": "Sara",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-10-09",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-07-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-10-09",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/17_V20-5-Sara.png",
+    "history": [
+      {
+        "id": 2401,
+        "date": "2022-12-05",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-11. Sire: Barrack. Sold 212kg @R31/kg at 16 months."
+      },
+      {
+        "id": 2402,
+        "date": "2024-09-15",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-13 'Danny'. Sire: Barrack."
+      },
+      {
+        "id": 2403,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 2 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "R19-1",
+    "name": "Zelda",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2019-01-01",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": null,
+    "purchaseDate": "",
+    "supplier": "Auction (with mother)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/R19-1-Zelda.png",
+    "history": [
+      {
+        "id": 2501,
+        "date": "2023-10-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-10. Sire: Barrack. Sold 250kg @R31/kg at 10 months. Black."
+      },
+      {
+        "id": 2502,
+        "date": "2024-12-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-23 'Link'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 2503,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "R-PAT",
+    "name": "Paterson",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2018-01-01",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": null,
+    "purchaseDate": "",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/18_R-Paterson.png",
+    "history": [
+      {
+        "id": 2601,
+        "date": "2021-08-17",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf Pope-21. Sire: Vrystaat."
+      },
+      {
+        "id": 2602,
+        "date": "2023-07-11",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-8 'Patty'. Sire: Barrack."
+      },
+      {
+        "id": 2603,
+        "date": "2024-08-19",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-4. Sire: Barrack. Sold 222kg @R36/kg at 8 months. All brown."
+      },
+      {
+        "id": 2604,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V20-3",
+    "name": "Socks",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2020-09-01",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-MKS",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2020-09-01",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/19_V20-3-Socks.png",
+    "history": [
+      {
+        "id": 2701,
+        "date": "2022-10-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B22-3 'Michie'. Sire: Barrack."
+      },
+      {
+        "id": 2702,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V21-1",
+    "name": "Mbambo",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2021-10-10",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-10-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-ENO",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2021-10-10",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/V21-1-Mbambo.png",
+    "history": [
+      {
+        "id": 2801,
+        "date": "2024-08-29",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-6 'Mooi'. Sire: Barrack."
+      },
+      {
+        "id": 2802,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 4/5 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "V21-2",
+    "name": "Cheeks",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2021-10-10",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2021-10-10",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/V21-2-Cheeks.png",
+    "history": [
+      {
+        "id": 2901,
+        "date": "2024-09-13",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-12. Sire: Barrack. Sold 168kg @R36/kg on 8 May at 7mo 25days."
+      },
+      {
+        "id": 2902,
+        "date": "2025-05-16",
+        "type": "Health",
+        "description": "PT - not pregnant, cycling."
+      }
+    ]
+  },
+  {
+    "tagId": "V21-3",
+    "name": "Cheddar",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2021-11-01",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-MASH",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2021-11-01",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/V21-3-Cheddar.png",
+    "history": [
+      {
+        "id": 3001,
+        "date": "2024-10-25",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-16 'Mozza'. Sire: Barrack. All brown."
+      },
+      {
+        "id": 3002,
+        "date": "2025-05-16",
+        "type": "Health",
+        "description": "PT - not pregnant, cycling."
+      }
+    ]
+  },
+  {
+    "tagId": "V21-4",
+    "name": "Yang",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2021-11-27",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-YIN",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2021-11-27",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/V21-4-Yang.png",
+    "history": [
+      {
+        "id": 3101,
+        "date": "2024-11-21",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-21. Sire: Barrack. Sold 152kg @R36/kg at 5mo 18days."
+      },
+      {
+        "id": 3102,
+        "date": "2025-05-16",
+        "type": "Health",
+        "description": "PT - not pregnant. Was pregnant but lost? Fluid in uterus."
+      }
+    ]
+  },
+  {
+    "tagId": "POPE-21",
+    "name": "Pope",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2021-08-17",
+    "status": "Active",
+    "pregnant": true,
+    "expectedCalvingDate": "2025-08-15",
+    "inseminationMethod": "Bull (Barrack)",
+    "dam": "R-PAT",
+    "sire": "Vrystaat",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2021-08-17",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "assets/images/21-Pope.png",
+    "history": [
+      {
+        "id": 3201,
+        "date": "2024-09-10",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-10 'Bishop'. Sire: Barrack."
+      },
+      {
+        "id": 3202,
+        "date": "2025-05-16",
+        "type": "Pregnancy",
+        "description": "PT - 2/3 months pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "B23-18",
+    "name": "Liddy-Patch",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-12-22",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": null,
+    "purchaseDate": "2023-12-26",
+    "supplier": "Rodney (cow calved on farm)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": [
+      {
+        "id": 3301,
+        "date": "2023-12-26",
+        "type": "Health",
+        "description": "Found on farm. Calved to a cow Rodney sold, approx 2 days old."
+      }
+    ]
+  },
+  {
+    "tagId": "B23-7",
+    "name": "Ribbon",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2023-03-20",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-YIN",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-03-20",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": [
+      {
+        "id": 3401,
+        "date": "2024-11-18",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B24-19 'Hickory'. Sire: Barrack."
+      },
+      {
+        "id": 3402,
+        "date": "2025-05-16",
+        "type": "Health",
+        "description": "PT - not pregnant."
+      }
+    ]
+  },
+  {
+    "tagId": "B23-2",
+    "name": "Cecile",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-02-22",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-MASH",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-02-22",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B22-4",
+    "name": "Jina",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2022-10-06",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-BAT",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2022-10-06",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-3",
+    "name": "Umlozi",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-01-31",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-BAT",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-01-31",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-14",
+    "name": "Marmite",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-10-27",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-ENO",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-10-27",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-14",
+    "name": "Prof",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-09-18",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-ENO",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-09-18",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-18",
+    "name": "Zen",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-11-09",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-YIN",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-11-09",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-16",
+    "name": "Elizabedi",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-11-30",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "AV-21-67",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-11-30",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-20",
+    "name": "Azania",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-11-21",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-7",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-11-21",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-17",
+    "name": "Galloway",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-11-06",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-4",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-11-06",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B22-7",
+    "name": "Lihle",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2022-10-17",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-6",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2022-10-17",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-8",
+    "name": "Amore",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-09-04",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-6",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-09-04",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-13",
+    "name": "Fassie",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-10-23",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-1",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-10-23",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-13",
+    "name": "Danny",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-09-15",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-5",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-09-15",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-23",
+    "name": "Link",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-12-01",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R19-1",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-12-01",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-8",
+    "name": "Patty",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-07-11",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-PAT",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-07-11",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B22-3",
+    "name": "Michie",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2022-10-01",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V20-3",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2022-10-01",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-6",
+    "name": "Mooi",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-08-29",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V21-1",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-08-29",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-16",
+    "name": "Mozza",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-10-25",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "V21-3",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-10-25",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-10",
+    "name": "Bishop",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-09-10",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "POPE-21",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-09-10",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-19",
+    "name": "Hickory",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-11-18",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "B23-7",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-11-18",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B24-22",
+    "name": "Clyde",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2024-11-27",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "VK-16-149",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2024-11-27",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-4",
+    "name": "Frita",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-03-08",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "R-CHIP",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-03-08",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-1",
+    "name": "Bonnie",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-01-20",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "VK-16-149",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-01-20",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-6",
+    "name": "Jali",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-03-17",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-03-17",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "B23-3",
+    "name": "Nobuhle",
+    "breed": "Nguni",
+    "gender": "Heifer",
+    "dob": "2023-02-27",
+    "status": "Active",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "Barrack",
+    "pasture": "",
+    "purchasePrice": 0,
+    "purchaseDate": "2023-02-27",
+    "supplier": "Homebred (Glenthorpe)",
+    "salePrice": null,
+    "saleDate": null,
+    "buyer": null,
+    "image": "",
+    "history": []
+  },
+  {
+    "tagId": "R-BABY-ASTRA",
+    "name": "Baby Astra",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "2011-01-01",
+    "status": "Sold",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 7500,
+    "purchaseDate": "2019-01-01",
+    "supplier": "Rodney",
+    "salePrice": 6000,
+    "saleDate": "2024-04-04",
+    "buyer": "GHT Auction",
+    "image": "assets/images/1_R-baby astra.png",
+    "history": [
+      {
+        "id": 5001,
+        "date": "2020-06-07",
+        "type": "Pregnancy",
+        "description": "Calf died at 2 weeks - injured in kraal. Sire: Vrystaat."
+      },
+      {
+        "id": 5002,
+        "date": "2021-05-16",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat. Sold 192kg @R41/kg at 6mo 3weeks."
+      },
+      {
+        "id": 5003,
+        "date": "2022-08-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-1. Sire: Barrack. Sold 194kg @R35/kg at 14 months."
+      },
+      {
+        "id": 5004,
+        "date": "2023-10-12",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-11. Sire: Barrack. Sold 160kg @R32/kg at 12 months."
+      },
+      {
+        "id": 5005,
+        "date": "2024-04-04",
+        "type": "Financial",
+        "description": "Sold at GHT Auction for R6000."
+      }
+    ]
+  },
+  {
+    "tagId": "R-ASTRA",
+    "name": "Astra",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Sold",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 6700,
+    "purchaseDate": "2017-01-01",
+    "supplier": "Rodney",
+    "salePrice": 7700,
+    "saleDate": "2024-12-05",
+    "buyer": "Sold 190kg @R32/kg",
+    "image": "assets/images/2_R-Astra.png",
+    "history": [
+      {
+        "id": 5101,
+        "date": "2020-11-08",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat. Sold 210kg @R36/kg at 7mo 3weeks."
+      },
+      {
+        "id": 5102,
+        "date": "2021-11-13",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat. Died in bushpig hole 19 Jan 2022."
+      },
+      {
+        "id": 5103,
+        "date": "2022-11-19",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-9. Sire: Barrack. Sold 212kg @R35/kg at 1yr 2mo."
+      },
+      {
+        "id": 5104,
+        "date": "2024-01-18",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B24-1. Sire: Barrack. Sold at 9 months."
+      },
+      {
+        "id": 5105,
+        "date": "2024-12-05",
+        "type": "Financial",
+        "description": "Sold for R7700 (190kg @R32/kg)."
+      }
+    ]
+  },
+  {
+    "tagId": "R-BRINJ",
+    "name": "Brinjal",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Sold",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": null,
+    "purchaseDate": "",
+    "supplier": "",
+    "salePrice": 8000,
+    "saleDate": "2024-04-04",
+    "buyer": "Rodney (GHT Auction)",
+    "image": "assets/images/3_R-Brinjal.png",
+    "history": [
+      {
+        "id": 5201,
+        "date": "2020-06-01",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat."
+      },
+      {
+        "id": 5202,
+        "date": "2021-09-08",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat."
+      },
+      {
+        "id": 5203,
+        "date": "2023-03-17",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-06 'Jali'. Sire: Barrack."
+      },
+      {
+        "id": 5204,
+        "date": "2024-04-04",
+        "type": "Financial",
+        "description": "Sold at GHT Auction to Rodney for R8000."
+      }
+    ]
+  },
+  {
+    "tagId": "R-OREO",
+    "name": "Red Oreo",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Sold",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": null,
+    "purchaseDate": "2016-01-01",
+    "supplier": "Rodney",
+    "salePrice": 7000,
+    "saleDate": "2023-11-01",
+    "buyer": "Rodney (Charlgrove Auction)",
+    "image": "assets/images/4_R-Red Oreo.png",
+    "history": [
+      {
+        "id": 5301,
+        "date": "2020-12-23",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf 'Oreo'. Sire: Vrystaat."
+      },
+      {
+        "id": 5302,
+        "date": "2021-10-31",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf. Sire: Vrystaat."
+      },
+      {
+        "id": 5303,
+        "date": "2023-02-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf B23-03 'Nobuhle'. Sire: Barrack."
+      },
+      {
+        "id": 5304,
+        "date": "2023-11-01",
+        "type": "Financial",
+        "description": "Sold at Charlgrove Auction to Rodney for R7000."
+      }
+    ]
+  },
+  {
+    "tagId": "R-BIGHORNS",
+    "name": "Big Horns",
+    "breed": "Nguni",
+    "gender": "Cow",
+    "dob": "",
+    "status": "Sold",
+    "pregnant": false,
+    "expectedCalvingDate": null,
+    "inseminationMethod": null,
+    "dam": "",
+    "sire": "",
+    "pasture": "",
+    "purchasePrice": 7500,
+    "purchaseDate": "",
+    "supplier": "Rodney",
+    "salePrice": null,
+    "saleDate": "2024-04-04",
+    "buyer": "GHT Auction",
+    "image": "assets/images/7_R-Big Horns.png",
+    "history": [
+      {
+        "id": 5401,
+        "date": "2020-10-09",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V20-5 'Sara'. Sire: Vrystaat."
+      },
+      {
+        "id": 5402,
+        "date": "2021-10-10",
+        "type": "Pregnancy",
+        "description": "Gave birth to heifer calf V21-2 'Cheeks'. Sire: Vrystaat."
+      },
+      {
+        "id": 5403,
+        "date": "2022-11-19",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B22-10. Sire: Barrack. Sold 212kg @R35/kg at 1yr 2mo. All brown."
+      },
+      {
+        "id": 5404,
+        "date": "2023-11-27",
+        "type": "Pregnancy",
+        "description": "Gave birth to bull calf B23-15. Sire: Barrack. Sold 160kg @R32/kg at 10.5mo."
+      },
+      {
+        "id": 5405,
+        "date": "2024-04-04",
+        "type": "Financial",
+        "description": "Sold at GHT Auction."
+      }
+    ]
+  }
+]

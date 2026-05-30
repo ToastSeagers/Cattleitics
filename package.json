@@ -1,0 +1,10 @@
+{
+  "name": "glenthorpe-cattleitics",
+  "version": "1.0.0",
+  "description": "Premium Offline-First Cattle Herd Management App for Glenthorpe Farm",
+  "main": "index.html",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}

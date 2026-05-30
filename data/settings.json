@@ -1,0 +1,33 @@
+{
+  "farm_name": "Glenthorpe Farm",
+  "paddocks": [
+    {
+      "id": "house_paddock",
+      "name": "House Paddock",
+      "size": "5ha",
+      "type": "Sweetveld",
+      "description": "Close to homestead, ideal for maternity and young calves."
+    },
+    {
+      "id": "river_field",
+      "name": "River Field",
+      "size": "12ha",
+      "type": "Sourveld/Sweetveld mix",
+      "description": "Lush grass near the stream, good water access."
+    },
+    {
+      "id": "ridge_pasture",
+      "name": "Ridge Pasture",
+      "size": "18ha",
+      "type": "Rocky sweetveld",
+      "description": "High ground, excellent drainage, used for general grazing."
+    },
+    {
+      "id": "slope_paddock",
+      "name": "Slope Paddock",
+      "size": "8ha",
+      "type": "Wooded grass pasture",
+      "description": "Shaded areas, excellent during hot summer afternoons."
+    }
+  ]
+}

@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glenthorpe Cattleitics - Cattle & Herd Management</title>
+    <!-- Custom Typography & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet.js Satellite GIS Map Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">GT</div>
+                <div class="logo-text">
+                    <h1>Cattleitics</h1>
+                    <span>Glenthorpe Farm</span>
+                </div>
+            </div>
+            
+            <nav class="nav-links">
+                <li class="nav-item active" data-target="dashboard-view">
+                    <a href="#"><i class="fa-solid fa-gauge"></i> <span>Dashboard</span></a>
+                </li>
+                <li class="nav-item" data-target="cattle-view">
+                    <a href="#"><i class="fa-solid fa-cow"></i> <span>Cattle Herd</span></a>
+                </li>
+                <li class="nav-item" data-target="pastures-view">
+                    <a href="#"><i class="fa-solid fa-map-location-dot"></i> <span>Pasture Map</span></a>
+                </li>
+                <li class="nav-item" data-target="tasks-view">
+                    <a href="#"><i class="fa-solid fa-calendar-check"></i> <span>Task Board</span></a>
+                </li>
+                <li class="nav-item" data-target="settings-view">
+                    <a href="#"><i class="fa-solid fa-gears"></i> <span>Data Settings</span></a>
+                </li>
+                <li class="nav-item" data-target="readme-view">
+                    <a href="#"><i class="fa-solid fa-book-open"></i> <span>App Guide</span></a>
+                </li>
+                <li class="nav-item shutdown-item" id="btn-shutdown-server" style="margin-top: 2rem; border-top: 1px dashed rgba(217, 4, 41, 0.25);">
+                    <a href="#" style="color: var(--danger);"><i class="fa-solid fa-power-off" style="color: var(--danger);"></i> <span style="color: var(--danger); font-weight: 600;">Shutdown Server</span></a>
+                </li>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Glenthorpe Farm v1.0</p>
+                <p id="storage-status-badge" style="font-size: 0.65rem; margin-top: 0.25rem;">Offline-First & Secure</p>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            
+            <!-- Global header -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h2 id="view-title">Dashboard Overview</h2>
+                    <p id="view-subtitle">Real-time agricultural telemetry & herd metrics</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-gold" id="btn-add-cow-shortcut">
+                        <i class="fa-solid fa-plus"></i> Add Cattle
+                    </button>
+                </div>
+            </header>
+
+            <!-- Global Quick Stats Strip -->
+            <div class="stats-grid">
+                <div class="stat-card" id="card-total-herd" style="cursor: pointer;">
+                    <div class="stat-header">
+                        <span>Total Herd</span>
+                        <i class="fa-solid fa-cow"></i>
+                    </div>
+                    <div class="stat-value" id="stat-total-count">0</div>
+                    <div class="stat-subtext" id="stat-active-count">0 active cattle</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Herd Valuation</span>
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <div class="stat-value" id="stat-herd-value">R0</div>
+                    <div class="stat-subtext" style="color: var(--gold)" id="stat-purchase-note">Purchased stock value</div>
+                </div>
+                <div class="stat-card" id="card-pregnancies" style="cursor: pointer;">
+                    <div class="stat-header">
+                        <span>Active Pregnancies</span>
+                        <i class="fa-solid fa-baby-carriage"></i>
+                    </div>
+                    <div class="stat-value" id="stat-pregnancy-count">0</div>
+                    <div class="stat-subtext" style="color: var(--warning)" id="stat-pregnancy-details">Expecting next 6 months</div>
+                </div>
+                <div class="stat-card" id="card-urgent-tasks" style="cursor: pointer;">
+                    <div class="stat-header">
+                        <span>Urgent Tasks</span>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="stat-value" id="stat-tasks-count">0</div>
+                    <div class="stat-subtext" style="color: var(--danger)" id="stat-tasks-summary">Action required</div>
+                </div>
+            </div>
+
+            <!-- ==================== VIEW: DASHBOARD ==================== -->
+            <section id="dashboard-view" class="app-view active">
+                <div class="dashboard-grid">
+                    
+                    <!-- Left: Interactive Pasture grid -->
+                    <div class="dashboard-panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-compass"></i> Pastures & Paddock Load</h3>
+                            <button class="btn btn-secondary" onclick="document.querySelector('[data-target=pastures-view]').click()">Manage Pastures</button>
+                        </div>
+                        <p class="pasture-desc">Select a paddock below to quickly view which cattle are currently grazing there.</p>
+                        
+                        <div class="pasture-grid" id="dashboard-pasture-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Mini Paddock quick-cattle drawer -->
+                        <div id="mini-paddock-drawer" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+                            <h4 id="mini-paddock-title" style="color: var(--gold); margin-bottom: 0.5rem;">Cattle in House Paddock:</h4>
+                            <div class="pasture-cows-list" id="mini-paddock-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Quick Taskboard feed -->
+                    <div class="dashboard-panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-clock"></i> Upcoming Schedule</h3>
+                            <button class="btn btn-secondary" onclick="document.querySelector('[data-target=tasks-view]').click()">Full Board</button>
+                        </div>
+                        <div class="task-list" id="dashboard-task-list">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==================== VIEW: CATTLE HERD ==================== -->
+            <section id="cattle-view" class="app-view">
+                <div class="filter-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" class="search-input" id="search-cattle" placeholder="Search by Tag ID, Name or Breed...">
+                    </div>
+                    
+                    <select class="select-filter" id="filter-breed">
+                        <option value="">All Breeds</option>
+                        <option value="Bonsmara">Bonsmara</option>
+                        <option value="Nguni">Nguni</option>
+                        <option value="Brahman">Brahman</option>
+                    </select>
+
+                    <select class="select-filter" id="filter-gender">
+                        <option value="">All Genders</option>
+                        <option value="Bull">Bulls</option>
+                        <option value="Cow">Cows</option>
+                        <option value="Heifer">Heifers</option>
+                        <option value="Steer">Steers</option>
+                        <option value="Calf">Calves</option>
+                    </select>
+
+                    <select class="select-filter" id="filter-pregnancy">
+                        <option value="">Pregnancy: All</option>
+                        <option value="pregnant">Pregnant Only</option>
+                        <option value="not_pregnant">Not Pregnant</option>
+                    </select>
+
+                    <select class="select-filter" id="filter-status">
+                        <option value="Active">Status: Active</option>
+                        <option value="Sold">Status: Sold</option>
+                        <option value="Deceased">Status: Deceased</option>
+                        <option value="">Status: All</option>
+                    </select>
+                </div>
+
+                <!-- Cattle Grid list -->
+                <div class="cattle-grid" id="cattle-cards-grid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </section>
+
+            <!-- ==================== VIEW: DETAILED PASTURE MAP ==================== -->
+            <section id="pastures-view" class="app-view">
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-map-location-dot"></i> Glenthorpe Farm Paddock Rotations</h3>
+                        <button class="btn btn-primary" id="btn-add-paddock"><i class="fa-solid fa-plus"></i> Add Pasture</button>
+                    </div>
+                    <p class="pasture-desc">Select a pasture on the satellite map or in the side directory to manage transfers and grazing density.</p>
+                    
+                    <!-- Side-by-Side Map and List Layout -->
+                    <div class="pastures-layout-split">
+                        <div id="farm-gis-map" style="height: 520px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; z-index: 10;"></div>
+                        
+                        <div class="pastures-list-column">
+                            <h4 style="color: var(--gold); margin-bottom: 0.5rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-list"></i> Pastures Directory</h4>
+                            <div class="pasture-grid" id="map-pasture-grid" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pasture full management detail -->
+                    <div class="pasture-detail-panel" id="pasture-details-panel" style="display: none;">
+                        <div class="pasture-detail-header" style="flex-wrap: wrap; gap: 0.75rem;">
+                            <h3 id="paddock-detail-name">House Paddock</h3>
+                            <span class="btn btn-secondary" style="font-size: 0.8rem; pointer-events: none;" id="paddock-detail-meta">5ha | Sweetveld</span>
+                            <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                                <button class="btn btn-secondary btn-sm" id="btn-edit-paddock-shortcut" style="padding: 0.4rem 0.75rem;"><i class="fa-solid fa-pen"></i> Edit Pasture</button>
+                                <button class="btn btn-danger btn-sm" id="btn-delete-paddock-shortcut" style="padding: 0.4rem 0.75rem; background-color: transparent; border: 1px solid var(--danger); color: var(--danger);"><i class="fa-solid fa-trash-can"></i> Delete Pasture</button>
+                            </div>
+                        </div>
+                        <p class="pasture-desc" id="paddock-detail-desc"></p>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4 style="color: var(--gold); margin-bottom: 0.75rem;">Animals Currently Grazing Here:</h4>
+                            <div class="pasture-cows-list" id="paddock-cows-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== VIEW: TASK BOARD ==================== -->
+            <section id="tasks-view" class="app-view">
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-list-check"></i> Glenthorpe Vaccination & Vet Schedule</h3>
+                        <button class="btn btn-primary" id="btn-add-task"><i class="fa-solid fa-plus"></i> Add New Task</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-secondary btn-sm filter-task-btn active" data-filter="All">All Tasks</button>
+                        <button class="btn btn-secondary btn-sm filter-task-btn" data-filter="Pending">Pending</button>
+                        <button class="btn btn-secondary btn-sm filter-task-btn" data-filter="Urgent">Urgent</button>
+                        <button class="btn btn-secondary btn-sm filter-task-btn" data-filter="Completed">Completed</button>
+                    </div>
+
+                    <div class="task-list" id="full-task-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== VIEW: DATA SETTINGS ==================== -->
+            <section id="settings-view" class="app-view">
+                <div class="settings-grid">
+                    
+                    <!-- Backups card -->
+                    <div class="settings-card">
+                        <h4><i class="fa-solid fa-cloud-arrow-down"></i> Backup & Export Data</h4>
+                        <p>Download your complete farm database. Highly recommended to keep regular backups on your local computer so your data is never lost.</p>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn btn-primary" id="btn-export-csv"><i class="fa-solid fa-file-csv"></i> Export to CSV</button>
+                            <button class="btn btn-secondary" id="btn-export-json"><i class="fa-solid fa-file-code"></i> Export JSON</button>
+                        </div>
+                    </div>
+
+                    <!-- Imports card -->
+                    <div class="settings-card">
+                        <h4><i class="fa-solid fa-cloud-arrow-up"></i> Import Spreadsheet Data</h4>
+                        <p>Upload a previously exported JSON backup or a CSV list to quickly populate your cattle database.</p>
+                        
+                        <div class="upload-box" id="csv-import-box">
+                            <i class="fa-solid fa-file-import"></i>
+                            <p style="font-weight: 600;">Click to Import CSV or JSON</p>
+                            <p style="font-size: 0.75rem;">Supports standard Cattleitics layouts</p>
+                            <input type="file" id="settings-import-file" style="display: none;" accept=".csv,.json">
+                        </div>
+                    </div>
+
+                    <!-- Custom Paddocks Configuration -->
+                    <div class="settings-card">
+                        <h4><i class="fa-solid fa-house-chimney-crack"></i> Glenthorpe Farm Setup</h4>
+                        <div class="form-group" style="margin-top: 0.5rem;">
+                            <label for="settings-farm-name">Farm Name</label>
+                            <input type="text" class="form-control" id="settings-farm-name" value="Glenthorpe Farm">
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-farm-settings" style="margin-top: 1rem; width: 100%; justify-content: center;">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Setup
+                        </button>
+                    </div>
+
+                    <!-- Reset Options -->
+                    <div class="settings-card" style="border-color: var(--danger)">
+                        <h4 style="color: var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> Emergency Actions</h4>
+                        <p>Clear the entire browser-cached database. All current records will be permanently erased. Export a backup first!</p>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn btn-danger" id="btn-clear-db"><i class="fa-solid fa-trash-can"></i> Wipe Database</button>
+                            <button class="btn btn-secondary" id="btn-reload-mocks"><i class="fa-solid fa-rotate"></i> Load Mock Data</button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==================== VIEW: APP GUIDE / README ==================== -->
+            <section id="readme-view" class="app-view">
+                <div class="dashboard-panel" style="max-width: 850px; margin: 0 auto; line-height: 1.6;">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-book-open"></i> Glenthorpe Cattleitics User Manual</h3>
+                        <button class="btn btn-secondary btn-sm" id="btn-reload-readme"><i class="fa-solid fa-rotate"></i> Refresh Guide</button>
+                    </div>
+                    <div id="readme-content-area" class="readme-rendered-markdown" style="font-size: 0.95rem; color: var(--text-main); display: flex; flex-direction: column; gap: 1.25rem; padding: 0.5rem;">
+                        <!-- Rendered Markdown goes here -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODAL: CATTLE DETAILS PROFILER ==================== -->
+    <div class="modal-overlay" id="cow-details-modal">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="btn-close-details"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-body">
+                
+                <div class="profile-grid">
+                    
+                    <!-- Left profile sidebar -->
+                    <div class="profile-sidebar">
+                        <img src="assets/images/nguni_cow.png" class="profile-large-image" id="profile-image" alt="Cattle Photo">
+                        
+                        <div class="profile-header-info">
+                            <span class="profile-tag" id="profile-tag-id">GT002</span>
+                            <h3 class="profile-name" id="profile-cow-name">Nandi</h3>
+                            <span class="cow-breed" id="profile-cow-breed">Nguni</span>
+                        </div>
+
+                        <div class="profile-quick-stats">
+                            <div class="profile-stat-box">
+                                <span class="profile-stat-label">Gender</span>
+                                <span class="profile-stat-val" id="profile-stat-gender">Cow</span>
+                            </div>
+                            <div class="profile-stat-box">
+                                <span class="profile-stat-label">Status</span>
+                                <span class="profile-stat-val" id="profile-stat-status" style="color: var(--success)">Active</span>
+                            </div>
+                            <div class="profile-stat-box">
+                                <span class="profile-stat-label">Location</span>
+                                <span class="profile-stat-val" id="profile-stat-location">River Field</span>
+                            </div>
+                            <div class="profile-stat-box">
+                                <span class="profile-stat-label">Age</span>
+                                <span class="profile-stat-val" id="profile-stat-age">5 years</span>
+                            </div>
+                        </div>
+
+                        <!-- Core actions on profile -->
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn btn-primary" id="btn-profile-edit" style="justify-content: center;">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                            </button>
+                            <button class="btn btn-secondary" id="btn-profile-move" style="justify-content: center;">
+                                <i class="fa-solid fa-person-walking-arrow-right"></i> Move Pasture
+                            </button>
+                            <button class="btn btn-secondary" id="btn-profile-log-event" style="justify-content: center;">
+                                <i class="fa-solid fa-notes-medical"></i> Log Vet/Event
+                            </button>
+                            <button class="btn btn-danger" id="btn-profile-delete" style="justify-content: center; background-color: transparent; border: 1px solid var(--danger); color: var(--danger);">
+                                <i class="fa-solid fa-trash-can"></i> Delete Cattle
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right detailed content tabs -->
+                    <div class="profile-main-content">
+                        
+                        <div class="profile-tabs">
+                            <button class="tab-btn active" data-tab="tab-info">Cattle Bio & History</button>
+                            <button class="tab-btn" data-tab="tab-pedigree">Pedigree Links</button>
+                            <button class="tab-btn" data-tab="tab-timeline">Veterinary & Event Log</button>
+                        </div>
+
+                        <!-- TAB: Biological Info and Financials -->
+                        <div class="tab-panel active" id="tab-info">
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="settings-card" style="padding: 1rem; background: rgba(0,0,0,0.15)">
+                                    <h4 style="font-size: 0.9rem; color: var(--gold); margin-bottom: 0.5rem;">Cattle Biography</h4>
+                                    <p style="margin-bottom: 0.4rem;"><strong class="text-muted">Tag Number:</strong> <span id="bio-tag">GT002</span></p>
+                                    <p style="margin-bottom: 0.4rem;"><strong class="text-muted">Register Name:</strong> <span id="bio-name">Nandi</span></p>
+                                    <p style="margin-bottom: 0.4rem;"><strong class="text-muted">Breed Class:</strong> <span id="bio-breed">Nguni</span></p>
+                                    <p style="margin-bottom: 0.4rem;"><strong class="text-muted">Date of Birth:</strong> <span id="bio-dob">2020-09-08</span></p>
+                                </div>
+
+                                <div class="settings-card" style="padding: 1rem; background: rgba(0,0,0,0.15)">
+                                    <h4 style="font-size: 0.9rem; color: var(--gold); margin-bottom: 0.5rem;">Reproductive Log</h4>
+                                    <div id="pregnancy-details-box">
+                                        <!-- Computed reproductive info -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card" style="padding: 1rem; background: rgba(0,0,0,0.15); margin-top: 1rem;">
+                                <h4 style="font-size: 0.9rem; color: var(--gold); margin-bottom: 0.5rem;">Financial Breakdown</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div>
+                                        <p><strong class="text-muted">Purchase Date:</strong> <span id="fin-purchase-date">-</span></p>
+                                        <p><strong class="text-muted">Purchase Price:</strong> <span id="fin-purchase-price">R0</span></p>
+                                        <p><strong class="text-muted">Acquired From:</strong> <span id="fin-supplier">-</span></p>
+                                    </div>
+                                    <div style="border-left: 1px dashed var(--border-color); padding-left: 1rem;">
+                                        <p><strong class="text-muted">Sale Date:</strong> <span id="fin-sale-date">-</span></p>
+                                        <p><strong class="text-muted">Sale Price:</strong> <span id="fin-sale-price">R0</span></p>
+                                        <p><strong class="text-muted">Purchased By:</strong> <span id="fin-buyer">-</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- TAB: Family Pedigree chart -->
+                        <div class="tab-panel" id="tab-pedigree">
+                            <h4 style="color: var(--gold); font-size: 1rem; margin-bottom: 0.5rem;">Glenthorpe Pedigree Links</h4>
+                            <p class="pasture-desc" style="margin-bottom: 1rem;">View immediate relatives. Click on parent/offspring node to view their profile immediately.</p>
+                            
+                            <div class="pedigree-visualizer" id="pedigree-content">
+                                <!-- Pedigree structure built dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- TAB: Event / Health log -->
+                        <div class="tab-panel" id="tab-timeline">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;">
+                                <h4 style="color: var(--gold); font-size: 1rem;">Complete Veterinary & Activity Feed</h4>
+                                <button class="btn btn-secondary btn-sm" id="btn-add-timeline-event-shortcut">
+                                    <i class="fa-solid fa-plus"></i> Add Event
+                                </button>
+                            </div>
+                            
+                            <div class="timeline" id="profile-timeline">
+                                <!-- Dynamic timeline nodes -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD / EDIT CATTLE FORM ==================== -->
+    <div class="modal-overlay" id="cow-form-modal">
+        <div class="modal-card" style="max-width: 700px;">
+            <div class="panel-header" style="margin-bottom: 0; padding: 1.5rem; background-color: var(--bg-sidebar);">
+                <h3 id="form-modal-title"><i class="fa-solid fa-cow"></i> Add Cattle Record</h3>
+                <button class="modal-close-btn" id="btn-close-form" style="top: 1.25rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="cattle-add-edit-form" class="modal-body" style="background-color: var(--bg-main);">
+                <div class="form-grid">
+                    
+                    <!-- Photo Picker Row -->
+                    <div class="form-group span-2">
+                        <label>Cattle Portrait</label>
+                        <div class="photo-picker-wrapper">
+                            <div class="photo-preview-box" id="form-photo-preview">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <div class="photo-picker-controls">
+                                <label for="form-file-photo">Upload Cow Photo</label>
+                                <span>Takes camera uploads & local files. Auto-compressed offline.</span>
+                                <input type="file" id="form-file-photo" style="display: none;" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biological Info -->
+                    <div class="form-group">
+                        <label for="form-tag-id">Tag ID *</label>
+                        <input type="text" class="form-control" id="form-tag-id" placeholder="e.g. GT009" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-name">Register Name</label>
+                        <input type="text" class="form-control" id="form-name" placeholder="e.g. Bessie">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-breed">Breed *</label>
+                        <select class="form-control" id="form-breed" required>
+                            <option value="Nguni">Nguni</option>
+                            <option value="Bonsmara">Bonsmara</option>
+                            <option value="Brahman">Brahman</option>
+                            <option value="Crossbreed">Crossbreed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-gender">Gender *</label>
+                        <select class="form-control" id="form-gender" required>
+                            <option value="Cow">Cow</option>
+                            <option value="Bull">Bull</option>
+                            <option value="Heifer">Heifer</option>
+                            <option value="Steer">Steer</option>
+                            <option value="Calf">Calf</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-dob">Date of Birth</label>
+                        <input type="date" class="form-control" id="form-dob" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-pasture">Current Pasture *</label>
+                        <select class="form-control" id="form-pasture" required>
+                            <!-- Paddocks loaded dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-status">Status *</label>
+                        <select class="form-control" id="form-status" required>
+                            <option value="Active">Active</option>
+                            <option value="Sold">Sold</option>
+                            <option value="Deceased">Deceased</option>
+                        </select>
+                    </div>
+
+                    <!-- Reproductive Parameters (Visible for Cow/Heifer) -->
+                    <div class="form-group reproduction-field">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="form-pregnant"> Pregnant?
+                        </label>
+                    </div>
+
+                    <div class="form-group reproduction-field pregnancy-details-group" style="display: none;">
+                        <label for="form-insemination">Insemination Method</label>
+                        <input type="text" class="form-control" id="form-insemination" placeholder="e.g. Bull (Brutus) or AI">
+                    </div>
+
+                    <div class="form-group reproduction-field pregnancy-details-group" style="display: none;">
+                        <label for="form-calving-date">Expected Calving Date</label>
+                        <input type="date" class="form-control" id="form-calving-date">
+                    </div>
+
+                    <!-- Financial Inputs -->
+                    <div class="form-group span-2" style="border-top: 1px dashed var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
+                        <h4 style="color: var(--gold); font-size: 0.9rem;">Financial Records</h4>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-purchase-date">Purchase Date</label>
+                        <input type="date" class="form-control" id="form-purchase-date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-purchase-price">Purchase Price (ZAR)</label>
+                        <input type="number" class="form-control" id="form-purchase-price" placeholder="Rands">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-supplier">Acquired Supplier</label>
+                        <input type="text" class="form-control" id="form-supplier" placeholder="Auction or Breeder">
+                    </div>
+
+                    <!-- Sales (Optional) -->
+                    <div class="form-group form-sale-group" style="display: none;">
+                        <label for="form-sale-date">Sale Date</label>
+                        <input type="date" class="form-control" id="form-sale-date">
+                    </div>
+
+                    <div class="form-group form-sale-group" style="display: none;">
+                        <label for="form-sale-price">Sale Price (ZAR)</label>
+                        <input type="number" class="form-control" id="form-sale-price" placeholder="Rands">
+                    </div>
+
+                    <div class="form-group form-sale-group" style="display: none;">
+                        <label for="form-buyer">Buyer / Sale Vendor</label>
+                        <input type="text" class="form-control" id="form-buyer" placeholder="Buyer name">
+                    </div>
+
+                    <!-- Pedigree Dropdowns -->
+                    <div class="form-group span-2" style="border-top: 1px dashed var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
+                        <h4 style="color: var(--gold); font-size: 0.9rem;">Immediate Pedigree Parent Links</h4>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-dam">Dam (Mother)</label>
+                        <select class="form-control" id="form-dam">
+                            <option value="">Unknown / None</option>
+                            <!-- Cows loaded dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-sire">Sire (Father)</label>
+                        <select class="form-control" id="form-sire">
+                            <option value="">Unknown / None</option>
+                            <!-- Bulls loaded dynamically -->
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="form-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancel</button>
+                    <button type="submit" class="btn btn-gold">Save Cattle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD TIMELINE / EVENT RECORD ==================== -->
+    <div class="modal-overlay" id="event-form-modal">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="panel-header" style="margin-bottom: 0; padding: 1.25rem; background-color: var(--bg-sidebar);">
+                <h3><i class="fa-solid fa-notes-medical"></i> Log Veterinary or Farm Event</h3>
+                <button class="modal-close-btn" id="btn-close-event-form" style="top: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="timeline-event-form" class="modal-body" style="background-color: var(--bg-main); padding: 1.25rem; gap: 1rem;">
+                <input type="hidden" id="event-cow-tag">
+                
+                <div class="form-group">
+                    <label for="event-date">Event Date *</label>
+                    <input type="date" class="form-control" id="event-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-type">Event Category *</label>
+                    <select class="form-control" id="event-type" required>
+                        <option value="Health">Health (Vaccination, Treatment, Deworming)</option>
+                        <option value="Pregnancy">Pregnancy (Diagnostic, Calving)</option>
+                        <option value="Move">Movement (Pasture Transfer)</option>
+                        <option value="Financial">Financial (Purchase, Sale, Valuation)</option>
+                        <option value="General">General / Notes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-desc">Detailed Description *</label>
+                    <textarea class="form-control" id="event-desc" rows="3" placeholder="e.g. Anthrax vaccination administered. No adverse reactions." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="event-performer">Performer / Operator</label>
+                    <input type="text" class="form-control" id="event-performer" placeholder="e.g. Toast Seagers or Vet">
+                </div>
+
+                <div class="form-footer" style="padding: 1rem 0 0 0; background: none; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-event-form">Cancel</button>
+                    <button type="submit" class="btn btn-gold">Log Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD / EDIT TASK ==================== -->
+    <div class="modal-overlay" id="task-form-modal">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="panel-header" style="margin-bottom: 0; padding: 1.25rem; background-color: var(--bg-sidebar);">
+                <h3 id="task-modal-title"><i class="fa-solid fa-list-check"></i> Add Schedule Task</h3>
+                <button class="modal-close-btn" id="btn-close-task-modal" style="top: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="task-add-edit-form" class="modal-body" style="background-color: var(--bg-main); padding: 1.25rem; gap: 1rem;">
+                <input type="hidden" id="task-id-field">
+                
+                <div class="form-group">
+                    <label for="task-title-field">Task Title *</label>
+                    <input type="text" class="form-control" id="task-title-field" placeholder="e.g. Tick dipping" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="task-desc-field">Task Description</label>
+                    <textarea class="form-control" id="task-desc-field" rows="2" placeholder="Describe the task parameters..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="task-date-field">Due Date *</label>
+                    <input type="date" class="form-control" id="task-date-field" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="task-category-field">Category *</label>
+                    <select class="form-control" id="task-category-field" required>
+                        <option value="Vaccination">Vaccination</option>
+                        <option value="Treatment">Treatment / Dip</option>
+                        <option value="Pregnancy">Pregnancy Monitoring</option>
+                        <option value="Nutrition">Nutrition / Winter Feed</option>
+                        <option value="General">General Chore</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="task-cattle-field">Target Animals</label>
+                    <input type="text" class="form-control" id="task-cattle-field" placeholder="e.g. All Active, or GT002">
+                </div>
+
+                <div class="form-group">
+                    <label for="task-status-field">Status Priority *</label>
+                    <select class="form-control" id="task-status-field" required>
+                        <option value="Pending">Normal Priority (Pending)</option>
+                        <option value="Urgent">High Priority (Urgent)</option>
+                    </select>
+                </div>
+
+                <div class="form-footer" style="padding: 1rem 0 0 0; background: none; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-task-form">Cancel</button>
+                    <button type="submit" class="btn btn-gold">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== LOGISTICS MOVEMENT DRAWER ==================== -->
+    <div class="modal-overlay" id="movement-form-modal">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="panel-header" style="margin-bottom: 0; padding: 1.25rem; background-color: var(--bg-sidebar);">
+                <h3><i class="fa-solid fa-person-walking-arrow-right"></i> Move Pasture Allocation</h3>
+                <button class="modal-close-btn" id="btn-close-movement-form" style="top: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="pasture-movement-form" class="modal-body" style="background-color: var(--bg-main); padding: 1.25rem; gap: 1.25rem;">
+                <input type="hidden" id="move-cow-tag">
+                
+                <div>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">Assign pasture relocation for cow: <strong id="move-cow-info-text" style="color: var(--gold);">GT002 - Nandi</strong></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="move-target-pasture">Target Pasture *</label>
+                    <select class="form-control" id="move-target-pasture" required>
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="move-reason">Reason for Transfer</label>
+                    <input type="text" class="form-control" id="move-reason" placeholder="e.g. Seasonal pasture rotation">
+                </div>
+
+                <div class="form-footer" style="padding: 1rem 0 0 0; background: none; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-movement-form">Cancel</button>
+                    <button type="submit" class="btn btn-gold">Confirm Move</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD / EDIT PADDOCK FORM ==================== -->
+    <div class="modal-overlay" id="paddock-form-modal">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="panel-header" style="margin-bottom: 0; padding: 1.25rem; background-color: var(--bg-sidebar);">
+                <h3 id="paddock-modal-title"><i class="fa-solid fa-map-location-dot"></i> Add Pasture / Paddock</h3>
+                <button class="modal-close-btn" id="btn-close-paddock-modal" style="top: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="paddock-add-edit-form" class="modal-body" style="background-color: var(--bg-main); padding: 1.25rem; gap: 1rem;">
+                <input type="hidden" id="paddock-id-field">
+                
+                <div class="form-group">
+                    <label for="paddock-name-field">Pasture / Paddock Name *</label>
+                    <input type="text" class="form-control" id="paddock-name-field" placeholder="e.g. Ridge Pasture" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="paddock-size-field">Pasture Size (Hectares) *</label>
+                    <input type="text" class="form-control" id="paddock-size-field" placeholder="e.g. 10ha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="paddock-type-field">Grass / Veld Soil Type *</label>
+                    <select class="form-control" id="paddock-type-field" required>
+                        <option value="Sweetveld">Sweetveld</option>
+                        <option value="Sourveld">Sourveld</option>
+                        <option value="Mixed Veld">Mixed Sweet/Sour Veld</option>
+                        <option value="Clover Pasture">Clover Pasture</option>
+                        <option value="Lucerne Field">Lucerne Field</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="paddock-category-field">Landscape Category (Icon style) *</label>
+                    <select class="form-control" id="paddock-category-field" required>
+                        <option value="Homestead">Homestead Field (House Icon)</option>
+                        <option value="Riverine">Riverine Field (Water Stream Icon)</option>
+                        <option value="Ridge">Highland Ridge (Mountain Contour Icon)</option>
+                        <option value="Wooded">Wooded Slope (Tree Clusters Icon)</option>
+                        <option value="Grassland">Open Grassland (Wheat Accent Icon)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Pasture Boundaries (GPS Coordinates)</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; background-color: var(--input-bg); padding: 0.75rem; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color);">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-draw-paddock-boundaries" style="padding: 0.4rem 0.75rem;"><i class="fa-solid fa-draw-polygon"></i> Draw Boundaries</button>
+                        <span id="paddock-boundary-status" style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem;">No boundary drawn (0 points)</span>
+                    </div>
+                    <input type="hidden" id="paddock-coordinates-field">
+                </div>
+
+                <div class="form-group">
+                    <label for="paddock-desc-field">Pasture Description / Notes</label>
+                    <textarea class="form-control" id="paddock-desc-field" rows="3" placeholder="Soil condition, paddock water source, fencing state..."></textarea>
+                </div>
+
+                <div class="form-footer" style="padding: 1rem 0 0 0; background: none; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-paddock-form">Cancel</button>
+                    <button type="submit" class="btn btn-gold">Save Pasture</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Script modules -->
+    <script src="js/db.js"></script>
+    <script src="js/mockData.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

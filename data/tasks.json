@@ -1,0 +1,38 @@
+[
+  {
+    "title": "Lumpy Skin Disease (LSD) Vaccinations",
+    "description": "Annual preventative vaccination for the entire active herd. Extremely important in humid Eastern Cape summers.",
+    "dueDate": "2026-06-05",
+    "status": "Pending",
+    "category": "Vaccination",
+    "targetCattle": "All Active",
+    "id": 1779970420976
+  },
+  {
+    "title": "Tick-Dipping Rotation",
+    "description": "Dip entire herd in the spray race to prevent heartwater and redwater tick-borne diseases.",
+    "dueDate": "2026-05-30",
+    "status": "Urgent",
+    "category": "Treatment",
+    "targetCattle": "All Active",
+    "id": 1779970420982
+  },
+  {
+    "title": "Nandi Pre-Calving Check",
+    "description": "Bring Nandi (GT002) close to the House Paddock to monitor body condition and prep for July calving.",
+    "dueDate": "2026-06-20",
+    "status": "Pending",
+    "category": "Pregnancy",
+    "targetCattle": "GT002",
+    "id": 1779970420986
+  },
+  {
+    "title": "Winter Feed Lick Setup",
+    "description": "Distribute urea and protein lick blocks to the Ridge Pasture to supplement dry winter sweetveld grazing.",
+    "dueDate": "2026-06-10",
+    "status": "Pending",
+    "category": "Nutrition",
+    "targetCattle": "All in Ridge Pasture",
+    "id": 1779970420990
+  }
+]
