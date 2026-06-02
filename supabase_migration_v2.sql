@@ -459,3 +459,18 @@ BEGIN
   RETURN found_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ============================================
+-- ADDENDUM: Updated signup trigger - no longer auto-creates a farm
+-- Users who are just team members don't need their own farm
+-- ============================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Create profile only (no farm auto-creation)
+  INSERT INTO public.profiles (id, global_role, owner_name)
+  VALUES (NEW.id, 'user', '');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -163,6 +163,7 @@ function bindAuthHandlers() {
     // Signup form
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const fullName = document.getElementById('signup-name').value.trim();
         const farm = document.getElementById('signup-farm').value.trim();
         const email = document.getElementById('signup-email').value.trim();
         const password = document.getElementById('signup-password').value;
@@ -177,7 +178,7 @@ function bindAuthHandlers() {
         }
 
         try {
-            const result = await db.signUp(email, password, farm);
+            const result = await db.signUp(email, password, farm, fullName);
             
             // If email confirmation is required, show a message
             if (!result.session) {
@@ -189,11 +190,13 @@ function bindAuthHandlers() {
                 return;
             }
 
-            // Session is active - save farm name and proceed
-            try {
-                await db.saveSetting('farm_name', farm);
-            } catch (settingsErr) {
-                console.warn("Could not save farm name setting immediately:", settingsErr.message);
+            // Session is active - save farm name if they created one
+            if (farm) {
+                try {
+                    await db.saveSetting('farm_name', farm);
+                } catch (settingsErr) {
+                    console.warn("Could not save farm name setting:", settingsErr.message);
+                }
             }
             hideAuthScreen();
             await initializeApp();
@@ -232,7 +235,37 @@ async function initializeApp() {
             // Check if this is a new user (no cattle yet) - show onboarding
             const cattle = await db.getAllCattle();
             const hasCompletedOnboarding = await db.getSetting('onboarding_complete').catch(() => null);
-            if (cattle.length === 0 && !hasCompletedOnboarding) {
+            
+            // If user has no farm at all, they're a member-only user waiting to be added
+            if (!db.farmId) {
+                // Check if they're a member of any farm
+                const farms = await db.getUserFarms();
+                if (farms.length === 0) {
+                    // No farm access at all — show waiting message
+                    document.querySelector('.app-container').style.display = 'none';
+                    const authScreen = document.getElementById('auth-screen');
+                    if (authScreen) {
+                        authScreen.style.display = 'flex';
+                        authScreen.querySelector('.auth-container').innerHTML = `
+                            <div class="auth-logo">
+                                <div class="logo-icon" style="width: 60px; height: 60px; font-size: 1.5rem;">CT</div>
+                                <h1 style="color: var(--gold); font-size: 1.8rem; margin-top: 0.75rem;">Cattleitics</h1>
+                            </div>
+                            <div class="auth-form-box">
+                                <h3><i class="fa-solid fa-clock"></i> Awaiting Farm Access</h3>
+                                <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Your account has been created but you haven't been added to a farm yet. Ask your farm owner to invite you using your email address.</p>
+                                <p style="color: var(--text-muted); font-size: 0.85rem;">Or if you want to create your own farm, sign out and sign up again with a farm name.</p>
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 1rem;" onclick="db.signOut().then(() => window.location.reload())">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                                </button>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+            }
+            
+            if (db.farmId && cattle.length === 0 && !hasCompletedOnboarding) {
                 showOnboardingScreen();
                 // Pre-fill farm name from signup if available
                 const savedFarm = await db.getSetting('farm_name').catch(() => null);
@@ -595,7 +628,7 @@ async function renderAdminPanel() {
                 usersContainer.innerHTML = users.map(u => `
                     <div class="admin-item">
                         <div class="admin-item-info">
-                            <strong>${u.farm_name || u.owner_name || 'Unknown'}</strong>
+                            <strong>${u.owner_name || 'No name set'}</strong>
                             <span>${u.global_role || 'user'} · ${u.id.substring(0, 8)}...</span>
                         </div>
                     </div>

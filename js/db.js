@@ -246,7 +246,7 @@ class CattleiticsDB {
 
     // ==================== AUTH METHODS ====================
 
-    async signUp(email, password, farmName) {
+    async signUp(email, password, farmName, fullName) {
         if (!this.supabase) throw new Error("Cloud mode not available");
         const { data, error } = await this.supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -255,10 +255,34 @@ class CattleiticsDB {
             this.user = data.session.user;
             this.mode = 'supabase';
             this.storageMode = 'Cloud Sync (Supabase)';
-            // Load farm context (trigger created a farm automatically)
+
+            // Update profile with full name
+            if (this.user) {
+                await this.supabase.from('profiles')
+                    .update({ owner_name: fullName || '' })
+                    .eq('id', this.user.id);
+            }
+
+            // Load farm context — the trigger may or may not have created a farm
             await this._loadFarmContext();
-            // Update farm name if provided
-            if (farmName && this.farmId) {
+
+            // If a farm name was provided and no farm exists yet, create one
+            if (farmName && !this.farmId) {
+                const { data: newFarm, error: farmErr } = await this.supabase
+                    .from('farms')
+                    .insert({ name: farmName, created_by: this.user.id })
+                    .select()
+                    .single();
+                if (!farmErr && newFarm) {
+                    this.farmId = newFarm.id;
+                    await this.supabase.from('farm_members')
+                        .insert({ farm_id: newFarm.id, user_id: this.user.id, role: 'owner' });
+                    await this.supabase.from('profiles')
+                        .update({ active_farm_id: newFarm.id })
+                        .eq('id', this.user.id);
+                }
+            } else if (farmName && this.farmId) {
+                // Farm was auto-created by trigger, update its name
                 await this.supabase.from('farms').update({ name: farmName }).eq('id', this.farmId);
             }
         } else if (data.user) {
