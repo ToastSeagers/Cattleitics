@@ -418,6 +418,26 @@
             <section id="settings-view" class="app-view">
                 <div class="settings-grid">
                     
+                    <!-- Account Management (Cloud mode only) -->
+                    <div class="settings-card" id="account-settings-card" style="display: none;">
+                        <h4><i class="fa-solid fa-user-pen"></i> My Account</h4>
+                        <div class="form-group" style="margin-top: 0.5rem;">
+                            <label for="account-name">Your Name</label>
+                            <input type="text" class="form-control" id="account-name" placeholder="Your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="account-email">Email Address</label>
+                            <input type="email" class="form-control" id="account-email" disabled style="opacity: 0.6;">
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-account" style="margin-top: 0.75rem;">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Account
+                        </button>
+                        <button class="btn btn-secondary" id="btn-change-password" style="margin-top: 0.5rem; width: 100%; justify-content: center;">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </button>
+                        <div id="account-status" style="display: none; margin-top: 0.5rem; font-size: 0.85rem;"></div>
+                    </div>
+
                     <!-- Backups card -->
                     <div class="settings-card">
                         <h4><i class="fa-solid fa-cloud-arrow-down"></i> Backup & Export Data</h4>

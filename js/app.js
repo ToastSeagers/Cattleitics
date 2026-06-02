@@ -655,6 +655,74 @@ async function adminAccessFarm(farmId, farmName) {
 }
 
 /**
+ * Initializes the account settings card.
+ */
+async function initAccountSettings() {
+    if (db.mode !== 'supabase') return;
+
+    const card = document.getElementById('account-settings-card');
+    if (!card) return;
+    card.style.display = '';
+
+    // Load current profile data
+    const { data: profile } = await db.supabase
+        .from('profiles')
+        .select('owner_name')
+        .eq('id', db.user.id)
+        .single();
+
+    const nameInput = document.getElementById('account-name');
+    const emailInput = document.getElementById('account-email');
+    if (nameInput) nameInput.value = profile?.owner_name || '';
+    if (emailInput) emailInput.value = db.user.email || '';
+
+    // Save account button
+    const saveBtn = document.getElementById('btn-save-account');
+    if (saveBtn && !saveBtn._bound) {
+        saveBtn._bound = true;
+        saveBtn.addEventListener('click', async () => {
+            const newName = document.getElementById('account-name').value.trim();
+            const statusEl = document.getElementById('account-status');
+            try {
+                await db.supabase.from('profiles')
+                    .update({ owner_name: newName })
+                    .eq('id', db.user.id);
+                statusEl.style.display = 'block';
+                statusEl.style.color = 'var(--success)';
+                statusEl.textContent = 'Account updated successfully.';
+                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+            } catch (err) {
+                statusEl.style.display = 'block';
+                statusEl.style.color = 'var(--danger)';
+                statusEl.textContent = 'Error: ' + err.message;
+            }
+        });
+    }
+
+    // Change password button
+    const pwBtn = document.getElementById('btn-change-password');
+    if (pwBtn && !pwBtn._bound) {
+        pwBtn._bound = true;
+        pwBtn.addEventListener('click', async () => {
+            const statusEl = document.getElementById('account-status');
+            try {
+                const { error } = await db.supabase.auth.resetPasswordForEmail(db.user.email, {
+                    redirectTo: window.location.origin
+                });
+                if (error) throw error;
+                statusEl.style.display = 'block';
+                statusEl.style.color = 'var(--success)';
+                statusEl.textContent = 'Password reset link sent to your email.';
+            } catch (err) {
+                statusEl.style.display = 'block';
+                statusEl.style.color = 'var(--danger)';
+                statusEl.textContent = 'Error: ' + err.message;
+            }
+        });
+    }
+}
+
+/**
  * Initializes team members section in settings.
  */
 async function initTeamMembers() {
@@ -861,6 +929,7 @@ function bindViewRouting() {
                     viewTitle.textContent = "Data & Configuration Control";
                     viewSubtitle.textContent = "Spreadsheet CSV import/export, backup data, and paddock adjustments";
                     initTeamMembers();
+                    initAccountSettings();
                     break;
                 case 'readme-view':
                     viewTitle.textContent = "Cattleitics User Manual & Guide";
