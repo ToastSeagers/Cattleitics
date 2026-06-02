@@ -182,11 +182,16 @@ class CattleiticsDB {
     async getFarmMembers() {
         if (!this.farmId) return [];
         const { data, error } = await this.supabase
-            .from('farm_members')
-            .select('user_id, role, joined_at, profiles(id, farm_name, owner_name)')
+            .from('farm_members_with_profiles')
+            .select('*')
             .eq('farm_id', this.farmId);
         if (error) return [];
-        return data;
+        return data.map(m => ({
+            user_id: m.user_id,
+            role: m.role,
+            joined_at: m.joined_at,
+            profiles: { farm_name: m.profile_farm_name, owner_name: m.profile_owner_name }
+        }));
     }
 
     /**

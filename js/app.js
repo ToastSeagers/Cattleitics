@@ -2408,9 +2408,17 @@ function bindDataOperations() {
     document.getElementById('btn-save-farm-settings').addEventListener('click', async () => {
         const farmName = document.getElementById('settings-farm-name').value.trim();
         if (farmName) {
-            await db.saveSetting('farm_name', farmName);
-            await loadAppState();
-            alert(`Farm name changed successfully to: ${farmName}`);
+            try {
+                // Update farm name on the farm itself (for multi-user visibility)
+                if (db.mode === 'supabase' && db.farmId) {
+                    await db.updateFarm({ name: farmName });
+                }
+                await db.saveSetting('farm_name', farmName);
+                await loadAppState();
+                alert(`Farm name changed successfully to: ${farmName}`);
+            } catch (err) {
+                alert('Error saving farm name: ' + err.message);
+            }
         }
     });
 
