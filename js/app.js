@@ -1735,7 +1735,7 @@ function bindModals() {
     // 3. Shutdown Server click listener
     const shutdownBtn = document.getElementById('btn-shutdown-server');
     if (shutdownBtn) {
-        if (!db.isServerMode) {
+        if (db.mode !== 'server') {
             // Hide if not in server mode (offline cache mode)
             shutdownBtn.style.display = 'none';
         } else {

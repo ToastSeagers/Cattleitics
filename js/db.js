@@ -1,9 +1,11 @@
 /**
- * Glenthorpe Cattleitics - Database Module (db.js)
+ * Cattleitics - Database Module (db.js)
  * Provides seamless environment-aware storage with three modes:
- * 1. Supabase Cloud: When hosted online (authenticated users, cloud database)
+ * 1. Supabase Cloud: When hosted online (authenticated users, farm-based cloud database)
  * 2. Local Server: When served via localhost Node.js (physical file sync)
  * 3. Offline IndexedDB: Fallback for file:// or no connectivity
+ *
+ * V2: Multi-user farm model. Data belongs to farms, not individual users.
  */
 
 // Supabase Configuration
@@ -17,7 +19,10 @@ class CattleiticsDB {
         this.db = null;
         this.supabase = null;
         this.user = null;
-        this.mode = 'offline'; // 'supabase', 'server', 'offline'
+        this.farmId = null;       // Active farm UUID
+        this.farmRole = null;     // 'owner', 'admin', 'member'
+        this.globalRole = null;   // 'user' or 'superadmin'
+        this.mode = 'offline';    // 'supabase', 'server', 'offline'
 
         // Environment Detection
         this.isLocalServer = window.location.protocol.startsWith('http') &&
@@ -35,7 +40,7 @@ class CattleiticsDB {
                 if (res.ok) {
                     this.mode = 'server';
                     this.storageMode = 'Local Server File Sync';
-                    console.log("Cattleitics: Local Node.js server detected. File sync active.");
+                    console.log("Cattleitics: Local Node.js server detected.");
                     return this;
                 }
             } catch (err) {
@@ -43,7 +48,7 @@ class CattleiticsDB {
             }
         }
 
-        // Mode 2: Supabase cloud (when hosted online or local server unavailable)
+        // Mode 2: Supabase cloud
         if (window.supabase) {
             try {
                 this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -52,7 +57,8 @@ class CattleiticsDB {
                     this.user = session.user;
                     this.mode = 'supabase';
                     this.storageMode = 'Cloud Sync (Supabase)';
-                    console.log("Cattleitics: Authenticated. Cloud sync active.");
+                    await this._loadFarmContext();
+                    console.log("Cattleitics: Authenticated. Farm:", this.farmId);
                     return this;
                 }
             } catch (err) {
@@ -65,30 +71,24 @@ class CattleiticsDB {
         this.storageMode = 'Offline Browser Mode';
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbName, this.dbVersion);
-
-            request.onerror = (event) => {
-                console.error("IndexedDB error:", event.target.error);
-                reject(event.target.error);
-            };
-
+            request.onerror = (event) => reject(event.target.error);
             request.onsuccess = (event) => {
                 this.db = event.target.result;
                 console.log("Cattleitics: Offline browser storage active.");
                 resolve(this);
             };
-
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 if (!db.objectStoreNames.contains('cattle')) {
-                    const cattleStore = db.createObjectStore('cattle', { keyPath: 'tagId' });
-                    cattleStore.createIndex('gender', 'gender', { unique: false });
-                    cattleStore.createIndex('pasture', 'pasture', { unique: false });
-                    cattleStore.createIndex('status', 'status', { unique: false });
+                    const s = db.createObjectStore('cattle', { keyPath: 'tagId' });
+                    s.createIndex('gender', 'gender', { unique: false });
+                    s.createIndex('pasture', 'pasture', { unique: false });
+                    s.createIndex('status', 'status', { unique: false });
                 }
                 if (!db.objectStoreNames.contains('tasks')) {
-                    const tasksStore = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-                    tasksStore.createIndex('dueDate', 'dueDate', { unique: false });
-                    tasksStore.createIndex('status', 'status', { unique: false });
+                    const s = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+                    s.createIndex('dueDate', 'dueDate', { unique: false });
+                    s.createIndex('status', 'status', { unique: false });
                 }
                 if (!db.objectStoreNames.contains('settings')) {
                     db.createObjectStore('settings', { keyPath: 'key' });
@@ -97,88 +97,206 @@ class CattleiticsDB {
         });
     }
 
-    // ==================== AUTH METHODS ====================
+    // ==================== FARM CONTEXT ====================
 
     /**
-     * Sign up a new farmer account.
+     * Loads the user's active farm and role after authentication.
      */
+    async _loadFarmContext() {
+        // Get profile with active_farm_id and global_role
+        const { data: profile, error } = await this.supabase
+            .from('profiles')
+            .select('active_farm_id, global_role')
+            .eq('id', this.user.id)
+            .single();
+
+        if (error || !profile) {
+            console.warn("Could not load profile:", error?.message);
+            return;
+        }
+
+        this.globalRole = profile.global_role || 'user';
+        this.farmId = profile.active_farm_id;
+
+        // If no active farm, try to find one they're a member of
+        if (!this.farmId) {
+            const { data: memberships } = await this.supabase
+                .from('farm_members')
+                .select('farm_id, role')
+                .eq('user_id', this.user.id)
+                .limit(1);
+            if (memberships && memberships.length > 0) {
+                this.farmId = memberships[0].farm_id;
+                this.farmRole = memberships[0].role;
+                // Save as active
+                await this.supabase.from('profiles')
+                    .update({ active_farm_id: this.farmId })
+                    .eq('id', this.user.id);
+            }
+        } else {
+            // Get role for this farm
+            const { data: membership } = await this.supabase
+                .from('farm_members')
+                .select('role')
+                .eq('farm_id', this.farmId)
+                .eq('user_id', this.user.id)
+                .single();
+            this.farmRole = membership?.role || (this.globalRole === 'superadmin' ? 'owner' : 'member');
+        }
+    }
+
+    /**
+     * Get list of farms the user belongs to.
+     */
+    async getUserFarms() {
+        if (!this.supabase) return [];
+        const { data, error } = await this.supabase
+            .from('farm_members')
+            .select('farm_id, role, farms(id, name, location)')
+            .eq('user_id', this.user.id);
+        if (error) return [];
+        return data.map(m => ({ id: m.farms.id, name: m.farms.name, location: m.farms.location, role: m.role }));
+    }
+
+    /**
+     * Switch active farm context.
+     */
+    async switchFarm(farmId) {
+        this.farmId = farmId;
+        await this.supabase.from('profiles')
+            .update({ active_farm_id: farmId })
+            .eq('id', this.user.id);
+        // Reload role
+        const { data: membership } = await this.supabase
+            .from('farm_members')
+            .select('role')
+            .eq('farm_id', farmId)
+            .eq('user_id', this.user.id)
+            .single();
+        this.farmRole = membership?.role || (this.globalRole === 'superadmin' ? 'owner' : 'member');
+    }
+
+    /**
+     * Get members of the current farm.
+     */
+    async getFarmMembers() {
+        if (!this.farmId) return [];
+        const { data, error } = await this.supabase
+            .from('farm_members')
+            .select('user_id, role, joined_at, profiles(id, farm_name, owner_name)')
+            .eq('farm_id', this.farmId);
+        if (error) return [];
+        return data;
+    }
+
+    /**
+     * Invite a user to the current farm by email.
+     */
+    async inviteFarmMember(userId, role = 'member') {
+        if (!this.farmId) throw new Error("No active farm");
+        const { error } = await this.supabase
+            .from('farm_members')
+            .insert({ farm_id: this.farmId, user_id: userId, role });
+        if (error) throw error;
+    }
+
+    /**
+     * Remove a member from the current farm.
+     */
+    async removeFarmMember(userId) {
+        if (!this.farmId) throw new Error("No active farm");
+        const { error } = await this.supabase
+            .from('farm_members')
+            .delete()
+            .eq('farm_id', this.farmId)
+            .eq('user_id', userId);
+        if (error) throw error;
+    }
+
+    /**
+     * Update farm details (name, location).
+     */
+    async updateFarm(updates) {
+        if (!this.farmId) throw new Error("No active farm");
+        const { error } = await this.supabase
+            .from('farms')
+            .update(updates)
+            .eq('id', this.farmId);
+        if (error) throw error;
+    }
+
+    /**
+     * Check if user is superadmin.
+     */
+    isSuperAdmin() {
+        return this.globalRole === 'superadmin';
+    }
+
+    /**
+     * Check if user is farm admin/owner.
+     */
+    isFarmAdmin() {
+        return this.globalRole === 'superadmin' || this.farmRole === 'owner' || this.farmRole === 'admin';
+    }
+
+    // ==================== AUTH METHODS ====================
+
     async signUp(email, password, farmName) {
         if (!this.supabase) throw new Error("Cloud mode not available");
         const { data, error } = await this.supabase.auth.signUp({ email, password });
         if (error) throw error;
 
-        // Supabase may require email confirmation depending on settings.
-        // If we have a session immediately, set up the user.
         if (data.session) {
             this.user = data.session.user;
             this.mode = 'supabase';
             this.storageMode = 'Cloud Sync (Supabase)';
-
-            // Update profile with farm name
-            if (this.user && farmName) {
-                await this.supabase.from('profiles')
-                    .update({ farm_name: farmName, owner_name: '' })
-                    .eq('id', this.user.id);
+            // Load farm context (trigger created a farm automatically)
+            await this._loadFarmContext();
+            // Update farm name if provided
+            if (farmName && this.farmId) {
+                await this.supabase.from('farms').update({ name: farmName }).eq('id', this.farmId);
             }
         } else if (data.user) {
-            // Email confirmation required - user exists but no session yet
             this.user = data.user;
             this.mode = 'supabase';
             this.storageMode = 'Cloud Sync (Supabase)';
         }
-
         return data;
     }
 
-    /**
-     * Sign in an existing farmer.
-     */
     async signIn(email, password) {
         if (!this.supabase) throw new Error("Cloud mode not available");
         const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-
         this.user = data.user;
         this.mode = 'supabase';
         this.storageMode = 'Cloud Sync (Supabase)';
+        await this._loadFarmContext();
         return data;
     }
 
-    /**
-     * Sign out the current user.
-     */
     async signOut() {
         if (!this.supabase) return;
         await this.supabase.auth.signOut();
         this.user = null;
+        this.farmId = null;
+        this.farmRole = null;
+        this.globalRole = null;
         this.mode = 'offline';
         this.storageMode = 'Offline Browser Mode';
     }
 
-    /**
-     * Get current authenticated user.
-     */
-    getUser() {
-        return this.user;
-    }
+    getUser() { return this.user; }
+    isAuthenticated() { return this.mode === 'supabase' && this.user !== null; }
 
-    /**
-     * Check if user is authenticated (for cloud mode).
-     */
-    isAuthenticated() {
-        return this.mode === 'supabase' && this.user !== null;
-    }
-
-    /**
-     * Listen for auth state changes.
-     */
     onAuthStateChange(callback) {
         if (!this.supabase) return;
-        this.supabase.auth.onAuthStateChange((event, session) => {
+        this.supabase.auth.onAuthStateChange(async (event, session) => {
             this.user = session?.user || null;
             if (this.user) {
                 this.mode = 'supabase';
                 this.storageMode = 'Cloud Sync (Supabase)';
+                await this._loadFarmContext();
             }
             callback(event, session);
         });
@@ -186,96 +304,72 @@ class CattleiticsDB {
 
     // ==================== CATTLE METHODS ====================
 
-    /**
-     * Retrieves all cattle.
-     */
     async getAllCattle() {
         if (this.mode === 'supabase') {
+            if (!this.farmId) return [];
             const { data: cattleRows, error } = await this.supabase
-                .from('cattle')
-                .select('*')
+                .from('cattle').select('*')
+                .eq('farm_id', this.farmId)
                 .order('created_at');
             if (error) throw error;
 
-            // Fetch history for all cattle
             const cattleIds = cattleRows.map(c => c.id);
             let historyRows = [];
             if (cattleIds.length > 0) {
                 const { data: hData, error: hErr } = await this.supabase
-                    .from('cattle_history')
-                    .select('*')
+                    .from('cattle_history').select('*')
                     .in('cattle_id', cattleIds)
                     .order('date');
                 if (!hErr) historyRows = hData;
             }
-
-            // Map to app format
             return cattleRows.map(row => this._dbRowToAppFormat(row, historyRows.filter(h => h.cattle_id === row.id)));
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/data');
-            if (!response.ok) throw new Error("Failed to load cattle from server");
-            return await response.json();
+            const r = await fetch('/api/data');
+            if (!r.ok) throw new Error("Failed to load cattle from server");
+            return await r.json();
         }
-
-        // Offline
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['cattle'], 'readonly');
-            const store = transaction.objectStore('cattle');
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['cattle'], 'readonly');
+            const req = tx.objectStore('cattle').getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
         });
     }
 
-    /**
-     * Retrieve a single cow profile by Tag ID.
-     */
     async getCow(tagId) {
         if (this.mode === 'supabase') {
+            if (!this.farmId) return null;
             const { data: rows, error } = await this.supabase
-                .from('cattle')
-                .select('*')
-                .eq('tag_id', tagId)
-                .limit(1);
+                .from('cattle').select('*')
+                .eq('farm_id', this.farmId)
+                .eq('tag_id', tagId).limit(1);
             if (error) throw error;
             if (rows.length === 0) return null;
-
             const { data: history } = await this.supabase
-                .from('cattle_history')
-                .select('*')
-                .eq('cattle_id', rows[0].id)
-                .order('date');
-
+                .from('cattle_history').select('*')
+                .eq('cattle_id', rows[0].id).order('date');
             return this._dbRowToAppFormat(rows[0], history || []);
         }
-
         const cattle = await this.getAllCattle();
         return cattle.find(c => c.tagId === tagId) || null;
     }
 
-    /**
-     * Adds or updates a cow profile.
-     */
     async saveCow(cowData) {
         if (this.mode === 'supabase') {
+            if (!this.farmId) throw new Error("No active farm");
             const dbRow = this._appFormatToDbRow(cowData);
-
-            // Upsert cattle record
             const { data: upserted, error } = await this.supabase
                 .from('cattle')
-                .upsert(dbRow, { onConflict: 'user_id,tag_id' })
-                .select()
-                .single();
+                .upsert(dbRow, { onConflict: 'farm_id,tag_id' })
+                .select().single();
             if (error) throw error;
 
-            // Sync history: delete existing and re-insert
+            // Sync history
             if (cowData.history && cowData.history.length > 0) {
                 await this.supabase.from('cattle_history').delete().eq('cattle_id', upserted.id);
-
                 const historyRows = cowData.history.map(h => ({
-                    user_id: this.user.id,
+                    farm_id: this.farmId,
                     cattle_id: upserted.id,
                     date: h.date || '',
                     type: h.type || 'General',
@@ -284,504 +378,321 @@ class CattleiticsDB {
                 }));
                 await this.supabase.from('cattle_history').insert(historyRows);
             }
-
             return cowData;
         }
-
         if (this.mode === 'server') {
-            const currentList = await this.getAllCattle();
-            const index = currentList.findIndex(c => c.tagId === cowData.tagId);
-            if (index > -1) {
-                currentList[index] = cowData;
-            } else {
-                currentList.push(cowData);
-            }
-            const response = await fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentList)
-            });
-            if (!response.ok) throw new Error("Failed to save cow to server files");
+            const list = await this.getAllCattle();
+            const idx = list.findIndex(c => c.tagId === cowData.tagId);
+            if (idx > -1) list[idx] = cowData; else list.push(cowData);
+            const r = await fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(list) });
+            if (!r.ok) throw new Error("Failed to save cow to server");
             return cowData;
         }
-
-        // Offline
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['cattle'], 'readwrite');
-            const store = transaction.objectStore('cattle');
-            const request = store.put(cowData);
-            request.onsuccess = () => resolve(cowData);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['cattle'], 'readwrite');
+            const req = tx.objectStore('cattle').put(cowData);
+            req.onsuccess = () => resolve(cowData);
+            req.onerror = () => reject(req.error);
         });
     }
 
-    /**
-     * Deletes a cow record.
-     */
     async deleteCow(tagId) {
         if (this.mode === 'supabase') {
-            const { error } = await this.supabase
-                .from('cattle')
-                .delete()
-                .eq('tag_id', tagId)
-                .eq('user_id', this.user.id);
+            if (!this.farmId) throw new Error("No active farm");
+            const { error } = await this.supabase.from('cattle').delete()
+                .eq('tag_id', tagId).eq('farm_id', this.farmId);
             if (error) throw error;
             return true;
         }
-
         if (this.mode === 'server') {
-            const currentList = await this.getAllCattle();
-            const filteredList = currentList.filter(c => c.tagId !== tagId);
-            const response = await fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(filteredList)
-            });
-            if (!response.ok) throw new Error("Failed to delete cow from server files");
+            const list = await this.getAllCattle();
+            const r = await fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(list.filter(c => c.tagId !== tagId)) });
+            if (!r.ok) throw new Error("Failed to delete cow from server");
             return true;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['cattle'], 'readwrite');
-            const store = transaction.objectStore('cattle');
-            const request = store.delete(tagId);
-            request.onsuccess = () => resolve(true);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['cattle'], 'readwrite');
+            const req = tx.objectStore('cattle').delete(tagId);
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
         });
     }
 
-    /**
-     * Bulk overwrite cattle records.
-     */
     async bulkSaveCattle(cattleList) {
         if (this.mode === 'supabase') {
-            // Delete all existing cattle for this user, then re-insert
-            await this.supabase.from('cattle').delete().eq('user_id', this.user.id);
-
-            for (const cow of cattleList) {
-                await this.saveCow(cow);
-            }
+            if (!this.farmId) throw new Error("No active farm");
+            // Delete existing cattle for this farm
+            await this.supabase.from('cattle').delete().eq('farm_id', this.farmId);
+            for (const cow of cattleList) { await this.saveCow(cow); }
             return true;
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cattleList)
-            });
-            if (!response.ok) throw new Error("Failed to bulk save cattle to server");
+            const r = await fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cattleList) });
+            if (!r.ok) throw new Error("Failed to bulk save cattle to server");
             return true;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['cattle'], 'readwrite');
-            const store = transaction.objectStore('cattle');
-            transaction.oncomplete = () => resolve(true);
-            transaction.onerror = () => reject(transaction.error);
+            const tx = this.db.transaction(['cattle'], 'readwrite');
+            const store = tx.objectStore('cattle');
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
             cattleList.forEach(cow => store.put(cow));
         });
     }
 
-    /**
-     * Wipes all cattle records.
-     */
     async clearAllCattle() {
         if (this.mode === 'supabase') {
-            const { error } = await this.supabase
-                .from('cattle')
-                .delete()
-                .eq('user_id', this.user.id);
+            if (!this.farmId) throw new Error("No active farm");
+            const { error } = await this.supabase.from('cattle').delete().eq('farm_id', this.farmId);
             if (error) throw error;
             return true;
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify([])
-            });
-            if (!response.ok) throw new Error("Failed to clear cattle from server");
+            const r = await fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([]) });
+            if (!r.ok) throw new Error("Failed to clear cattle");
             return true;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['cattle'], 'readwrite');
-            const store = transaction.objectStore('cattle');
-            const request = store.clear();
-            request.onsuccess = () => resolve(true);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['cattle'], 'readwrite');
+            const req = tx.objectStore('cattle').clear();
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
         });
     }
 
     // ==================== TASKS METHODS ====================
 
-    /**
-     * Retrieves all scheduled tasks.
-     */
     async getAllTasks() {
         if (this.mode === 'supabase') {
-            const { data, error } = await this.supabase
-                .from('tasks')
-                .select('*')
-                .order('created_at');
+            if (!this.farmId) return [];
+            const { data, error } = await this.supabase.from('tasks').select('*')
+                .eq('farm_id', this.farmId).order('created_at');
             if (error) throw error;
-            return data.map(t => ({
-                id: t.id,
-                title: t.title,
-                description: t.description,
-                dueDate: t.due_date,
-                status: t.status,
-                priority: t.priority,
-                cattleTag: t.cattle_tag
-            }));
+            return data.map(t => ({ id: t.id, title: t.title, description: t.description, dueDate: t.due_date, status: t.status, priority: t.priority, cattleTag: t.cattle_tag }));
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/tasks');
-            if (!response.ok) throw new Error("Failed to fetch tasks from server");
-            return await response.json();
+            const r = await fetch('/api/tasks');
+            if (!r.ok) throw new Error("Failed to fetch tasks");
+            return await r.json();
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['tasks'], 'readonly');
-            const store = transaction.objectStore('tasks');
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['tasks'], 'readonly');
+            const req = tx.objectStore('tasks').getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
         });
     }
 
-    /**
-     * Save/Create a task.
-     */
     async saveTask(taskData) {
         if (this.mode === 'supabase') {
-            const row = {
-                user_id: this.user.id,
-                title: taskData.title,
-                description: taskData.description,
-                due_date: taskData.dueDate,
-                status: taskData.status || 'pending',
-                priority: taskData.priority || 'medium',
-                cattle_tag: taskData.cattleTag || null
-            };
-
+            if (!this.farmId) throw new Error("No active farm");
+            const row = { farm_id: this.farmId, title: taskData.title, description: taskData.description, due_date: taskData.dueDate, status: taskData.status || 'pending', priority: taskData.priority || 'medium', cattle_tag: taskData.cattleTag || null };
             if (taskData.id && typeof taskData.id === 'string' && taskData.id.includes('-')) {
-                // Existing UUID - update
-                const { data, error } = await this.supabase
-                    .from('tasks')
-                    .update(row)
-                    .eq('id', taskData.id)
-                    .select()
-                    .single();
+                const { data, error } = await this.supabase.from('tasks').update(row).eq('id', taskData.id).select().single();
                 if (error) throw error;
                 taskData.id = data.id;
             } else {
-                // New task - insert
-                const { data, error } = await this.supabase
-                    .from('tasks')
-                    .insert(row)
-                    .select()
-                    .single();
+                const { data, error } = await this.supabase.from('tasks').insert(row).select().single();
                 if (error) throw error;
                 taskData.id = data.id;
             }
             return taskData;
         }
-
         if (this.mode === 'server') {
-            const currentList = await this.getAllTasks();
-            if (taskData.id) {
-                const index = currentList.findIndex(t => t.id === taskData.id);
-                if (index > -1) currentList[index] = taskData;
-            } else {
-                taskData.id = Date.now();
-                currentList.push(taskData);
-            }
-            const response = await fetch('/api/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentList)
-            });
-            if (!response.ok) throw new Error("Failed to save task to server files");
+            const list = await this.getAllTasks();
+            if (taskData.id) { const i = list.findIndex(t => t.id === taskData.id); if (i > -1) list[i] = taskData; }
+            else { taskData.id = Date.now(); list.push(taskData); }
+            const r = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(list) });
+            if (!r.ok) throw new Error("Failed to save task");
             return taskData;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['tasks'], 'readwrite');
-            const store = transaction.objectStore('tasks');
-            const request = store.put(taskData);
-            request.onsuccess = (event) => {
-                if (!taskData.id) taskData.id = event.target.result;
-                resolve(taskData);
-            };
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['tasks'], 'readwrite');
+            const req = tx.objectStore('tasks').put(taskData);
+            req.onsuccess = (e) => { if (!taskData.id) taskData.id = e.target.result; resolve(taskData); };
+            req.onerror = () => reject(req.error);
         });
     }
 
-    /**
-     * Deletes a task.
-     */
     async deleteTask(taskId) {
         if (this.mode === 'supabase') {
-            const { error } = await this.supabase
-                .from('tasks')
-                .delete()
-                .eq('id', taskId);
+            const { error } = await this.supabase.from('tasks').delete().eq('id', taskId);
             if (error) throw error;
             return true;
         }
-
         if (this.mode === 'server') {
-            const currentList = await this.getAllTasks();
-            const filteredList = currentList.filter(t => t.id !== taskId);
-            const response = await fetch('/api/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(filteredList)
-            });
-            if (!response.ok) throw new Error("Failed to delete task from server files");
+            const list = await this.getAllTasks();
+            const r = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(list.filter(t => t.id !== taskId)) });
+            if (!r.ok) throw new Error("Failed to delete task");
             return true;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['tasks'], 'readwrite');
-            const store = transaction.objectStore('tasks');
-            const request = store.delete(taskId);
-            request.onsuccess = () => resolve(true);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['tasks'], 'readwrite');
+            const req = tx.objectStore('tasks').delete(taskId);
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
         });
     }
 
     // ==================== PADDOCKS METHODS ====================
 
-    /**
-     * Retrieves all pastures/paddocks.
-     */
     async getAllPaddocks() {
         if (this.mode === 'supabase') {
-            const { data, error } = await this.supabase
-                .from('paddocks')
-                .select('*');
+            if (!this.farmId) return [];
+            const { data, error } = await this.supabase.from('paddocks').select('*')
+                .eq('farm_id', this.farmId);
             if (error) throw error;
-            return data.map(p => ({
-                id: p.paddock_id,
-                name: p.name,
-                size: p.size,
-                type: p.type,
-                category: p.category,
-                description: p.description,
-                coordinates: p.coordinates
-            }));
+            return data.map(p => ({ id: p.paddock_id, name: p.name, size: p.size, type: p.type, category: p.category, description: p.description, coordinates: p.coordinates }));
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/paddocks');
-            if (!response.ok) throw new Error("Failed to fetch paddocks from server");
-            return await response.json();
+            const r = await fetch('/api/paddocks');
+            if (!r.ok) throw new Error("Failed to fetch paddocks");
+            return await r.json();
         }
-
-        const offlinePaddocks = await this.getSetting('paddocks');
-        return offlinePaddocks || [];
+        const offline = await this.getSetting('paddocks');
+        return offline || [];
     }
 
-    /**
-     * Overwrites all pastures/paddocks.
-     */
     async savePaddocks(paddocksList) {
         if (this.mode === 'supabase') {
-            // Delete existing and re-insert
-            await this.supabase.from('paddocks').delete().eq('user_id', this.user.id);
-
+            if (!this.farmId) throw new Error("No active farm");
+            await this.supabase.from('paddocks').delete().eq('farm_id', this.farmId);
             if (paddocksList.length > 0) {
-                const rows = paddocksList.map(p => ({
-                    user_id: this.user.id,
-                    paddock_id: p.id,
-                    name: p.name,
-                    size: p.size,
-                    type: p.type,
-                    category: p.category,
-                    description: p.description,
-                    coordinates: p.coordinates
-                }));
+                const rows = paddocksList.map(p => ({ farm_id: this.farmId, paddock_id: p.id, name: p.name, size: p.size, type: p.type, category: p.category, description: p.description, coordinates: p.coordinates }));
                 const { error } = await this.supabase.from('paddocks').insert(rows);
                 if (error) throw error;
             }
             return true;
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/paddocks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(paddocksList)
-            });
-            if (!response.ok) throw new Error("Failed to save paddocks to server");
+            const r = await fetch('/api/paddocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paddocksList) });
+            if (!r.ok) throw new Error("Failed to save paddocks");
             return true;
         }
-
         await this.saveSetting('paddocks', paddocksList);
         return true;
     }
 
     // ==================== SETTINGS METHODS ====================
 
-    /**
-     * Saves generic setting.
-     */
     async saveSetting(key, value) {
         if (this.mode === 'supabase') {
-            const { error } = await this.supabase
-                .from('settings')
-                .upsert({ user_id: this.user.id, key, value }, { onConflict: 'user_id,key' });
+            if (!this.farmId) throw new Error("No active farm");
+            const { error } = await this.supabase.from('settings')
+                .upsert({ farm_id: this.farmId, key, value }, { onConflict: 'farm_id,key' });
             if (error) throw error;
             return value;
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key, value })
-            });
-            if (!response.ok) throw new Error("Failed to save setting to server");
+            const r = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, value }) });
+            if (!r.ok) throw new Error("Failed to save setting");
             return value;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['settings'], 'readwrite');
-            const store = transaction.objectStore('settings');
-            const request = store.put({ key, value });
-            request.onsuccess = () => resolve(value);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['settings'], 'readwrite');
+            const req = tx.objectStore('settings').put({ key, value });
+            req.onsuccess = () => resolve(value);
+            req.onerror = () => reject(req.error);
         });
     }
 
-    /**
-     * Retrieves setting value.
-     */
     async getSetting(key) {
         if (this.mode === 'supabase') {
-            const { data, error } = await this.supabase
-                .from('settings')
-                .select('value')
-                .eq('key', key)
-                .limit(1);
+            if (!this.farmId) return null;
+            const { data, error } = await this.supabase.from('settings')
+                .select('value').eq('farm_id', this.farmId).eq('key', key).limit(1);
             if (error) throw error;
             return data.length > 0 ? data[0].value : null;
         }
-
         if (this.mode === 'server') {
-            const response = await fetch('/api/settings');
-            if (!response.ok) throw new Error("Failed to get settings from server");
-            const settings = await response.json();
+            const r = await fetch('/api/settings');
+            if (!r.ok) throw new Error("Failed to get settings");
+            const settings = await r.json();
             return settings[key] || null;
         }
-
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['settings'], 'readonly');
-            const store = transaction.objectStore('settings');
-            const request = store.get(key);
-            request.onsuccess = () => resolve(request.result ? request.result.value : null);
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction(['settings'], 'readonly');
+            const req = tx.objectStore('settings').get(key);
+            req.onsuccess = () => resolve(req.result ? req.result.value : null);
+            req.onerror = () => reject(req.error);
         });
     }
 
     // ==================== DATA FORMAT HELPERS ====================
 
-    /**
-     * Converts a Supabase database row to the app's internal format.
-     */
     _dbRowToAppFormat(row, historyRows = []) {
         return {
-            tagId: row.tag_id,
-            name: row.name || '',
-            breed: row.breed || 'Nguni',
-            gender: row.gender || 'Cow',
-            dob: row.dob || '',
-            status: row.status || 'Active',
-            pregnant: row.pregnant || false,
-            expectedCalvingDate: row.expected_calving_date || null,
-            inseminationMethod: row.insemination_method || null,
-            dam: row.dam || '',
-            sire: row.sire || '',
-            pasture: row.pasture || '',
-            purchasePrice: row.purchase_price,
-            purchaseDate: row.purchase_date || '',
-            supplier: row.supplier || '',
-            salePrice: row.sale_price,
-            saleDate: row.sale_date || null,
-            buyer: row.buyer || null,
+            tagId: row.tag_id, name: row.name || '', breed: row.breed || 'Nguni',
+            gender: row.gender || 'Cow', dob: row.dob || '', status: row.status || 'Active',
+            pregnant: row.pregnant || false, expectedCalvingDate: row.expected_calving_date || null,
+            inseminationMethod: row.insemination_method || null, dam: row.dam || '',
+            sire: row.sire || '', pasture: row.pasture || '',
+            purchasePrice: row.purchase_price, purchaseDate: row.purchase_date || '',
+            supplier: row.supplier || '', salePrice: row.sale_price,
+            saleDate: row.sale_date || null, buyer: row.buyer || null,
             image: row.image || '',
-            history: historyRows.map(h => ({
-                id: h.id,
-                date: h.date,
-                type: h.type,
-                description: h.description,
-                performer: h.performer
-            }))
+            history: historyRows.map(h => ({ id: h.id, date: h.date, type: h.type, description: h.description, performer: h.performer }))
         };
     }
 
-    /**
-     * Converts app format to Supabase database row.
-     */
     _appFormatToDbRow(cowData) {
         return {
-            user_id: this.user.id,
-            tag_id: cowData.tagId,
-            name: cowData.name || '',
-            breed: cowData.breed || 'Nguni',
-            gender: cowData.gender || 'Cow',
-            dob: cowData.dob || '',
-            status: cowData.status || 'Active',
-            pregnant: cowData.pregnant || false,
-            expected_calving_date: cowData.expectedCalvingDate || null,
-            insemination_method: cowData.inseminationMethod || null,
-            dam: cowData.dam || '',
-            sire: cowData.sire || '',
-            pasture: cowData.pasture || '',
-            purchase_price: cowData.purchasePrice || null,
-            purchase_date: cowData.purchaseDate || '',
-            supplier: cowData.supplier || '',
-            sale_price: cowData.salePrice || null,
-            sale_date: cowData.saleDate || null,
-            buyer: cowData.buyer || null,
+            farm_id: this.farmId,
+            tag_id: cowData.tagId, name: cowData.name || '', breed: cowData.breed || 'Nguni',
+            gender: cowData.gender || 'Cow', dob: cowData.dob || '', status: cowData.status || 'Active',
+            pregnant: cowData.pregnant || false, expected_calving_date: cowData.expectedCalvingDate || null,
+            insemination_method: cowData.inseminationMethod || null, dam: cowData.dam || '',
+            sire: cowData.sire || '', pasture: cowData.pasture || '',
+            purchase_price: cowData.purchasePrice || null, purchase_date: cowData.purchaseDate || '',
+            supplier: cowData.supplier || '', sale_price: cowData.salePrice || null,
+            sale_date: cowData.saleDate || null, buyer: cowData.buyer || null,
             image: cowData.image || ''
         };
     }
 
-    // ==================== EXPORT METHODS ====================
+    // ==================== EXPORT ====================
 
-    /**
-     * Export all cattle data as CSV string (for download).
-     */
     async exportCSV() {
         const cattle = await this.getAllCattle();
-        const headers = [
-            'Tag ID', 'Name', 'Breed', 'Gender', 'Date of Birth', 'Status',
-            'Current Pasture', 'Is Pregnant', 'Expected Calving Date',
-            'Insemination Method', 'Dam Tag', 'Sire Tag', 'Purchase Date',
-            'Purchase Price (ZAR)', 'Supplier', 'Sale Date', 'Sale Price (ZAR)', 'Buyer'
-        ];
-
+        const headers = ['Tag ID','Name','Breed','Gender','Date of Birth','Status','Current Pasture','Is Pregnant','Expected Calving Date','Insemination Method','Dam Tag','Sire Tag','Purchase Date','Purchase Price (ZAR)','Supplier','Sale Date','Sale Price (ZAR)','Buyer'];
         let csv = headers.join(',') + '\n';
         cattle.forEach(c => {
-            const row = [
-                c.tagId, c.name, c.breed, c.gender, c.dob, c.status, c.pasture,
-                c.pregnant ? 'TRUE' : 'FALSE', c.expectedCalvingDate || '',
-                c.inseminationMethod || '', c.dam, c.sire, c.purchaseDate || '',
-                c.purchasePrice || '', c.supplier || '', c.saleDate || '',
-                c.salePrice || '', c.buyer || ''
-            ].map(v => {
-                const s = String(v || '');
-                return s.includes(',') ? `"${s}"` : s;
-            });
+            const row = [c.tagId, c.name, c.breed, c.gender, c.dob, c.status, c.pasture, c.pregnant ? 'TRUE' : 'FALSE', c.expectedCalvingDate || '', c.inseminationMethod || '', c.dam, c.sire, c.purchaseDate || '', c.purchasePrice || '', c.supplier || '', c.saleDate || '', c.salePrice || '', c.buyer || ''].map(v => { const s = String(v || ''); return s.includes(',') ? `"${s}"` : s; });
             csv += row.join(',') + '\n';
         });
         return csv;
+    }
+
+    // ==================== ADMIN METHODS (Superadmin only) ====================
+
+    /**
+     * Get all farms (superadmin only - RLS allows it).
+     */
+    async adminGetAllFarms() {
+        if (!this.isSuperAdmin()) throw new Error("Not authorized");
+        const { data, error } = await this.supabase.from('farms').select('*, farm_members(user_id, role)');
+        if (error) throw error;
+        return data;
+    }
+
+    /**
+     * Access a specific farm as superadmin (switch context).
+     */
+    async adminAccessFarm(farmId) {
+        if (!this.isSuperAdmin()) throw new Error("Not authorized");
+        this.farmId = farmId;
+        this.farmRole = 'owner';
+        await this.supabase.from('profiles').update({ active_farm_id: farmId }).eq('id', this.user.id);
+    }
+
+    /**
+     * Get all user profiles (superadmin only).
+     */
+    async adminGetAllUsers() {
+        if (!this.isSuperAdmin()) throw new Error("Not authorized");
+        const { data, error } = await this.supabase.from('profiles').select('*');
+        if (error) throw error;
+        return data;
     }
 }
 
@@ -797,27 +708,13 @@ function compressImage(file, maxDimension = 600, quality = 0.7) {
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > maxDimension) {
-                        height = Math.round((height * maxDimension) / width);
-                        width = maxDimension;
-                    }
-                } else {
-                    if (height > maxDimension) {
-                        width = Math.round((width * maxDimension) / height);
-                        height = maxDimension;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
+                let width = img.width, height = img.height;
+                if (width > height) { if (width > maxDimension) { height = Math.round((height * maxDimension) / width); width = maxDimension; } }
+                else { if (height > maxDimension) { width = Math.round((width * maxDimension) / height); height = maxDimension; } }
+                canvas.width = width; canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                resolve(dataUrl);
+                resolve(canvas.toDataURL('image/jpeg', quality));
             };
             img.onerror = (err) => reject(err);
         };
