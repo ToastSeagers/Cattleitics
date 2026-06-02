@@ -99,7 +99,47 @@ function bindAuthHandlers() {
     document.getElementById('show-login').addEventListener('click', (e) => {
         e.preventDefault();
         document.getElementById('auth-signup-box').style.display = 'none';
+        document.getElementById('auth-forgot-box').style.display = 'none';
         document.getElementById('auth-login-box').style.display = 'block';
+    });
+
+    // Show forgot password
+    document.getElementById('show-forgot-password').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('auth-login-box').style.display = 'none';
+        document.getElementById('auth-forgot-box').style.display = 'block';
+    });
+
+    document.getElementById('show-login-from-forgot').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('auth-forgot-box').style.display = 'none';
+        document.getElementById('auth-login-box').style.display = 'block';
+    });
+
+    // Forgot password form
+    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('forgot-email').value.trim();
+        const errorEl = document.getElementById('forgot-error');
+        errorEl.style.display = 'none';
+
+        try {
+            const { error } = await db.supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin
+            });
+            if (error) throw error;
+            errorEl.textContent = 'Password reset link sent! Check your email inbox.';
+            errorEl.style.display = 'block';
+            errorEl.style.borderColor = 'var(--success)';
+            errorEl.style.color = 'var(--success)';
+            errorEl.style.background = 'rgba(40, 167, 69, 0.1)';
+        } catch (err) {
+            errorEl.textContent = err.message || 'Failed to send reset link.';
+            errorEl.style.display = 'block';
+            errorEl.style.borderColor = 'var(--danger)';
+            errorEl.style.color = 'var(--danger)';
+            errorEl.style.background = 'rgba(220, 53, 69, 0.1)';
+        }
     });
 
     // Login form
@@ -184,6 +224,10 @@ async function initializeApp() {
 
             // Add sign out option
             addSignOutButton();
+
+            // Initialize farm switcher, admin panel, team members
+            await initFarmSwitcher();
+            initAdminPanel();
 
             // Check if this is a new user (no cattle yet) - show onboarding
             const cattle = await db.getAllCattle();
@@ -469,6 +513,233 @@ function addSignOutButton() {
 }
 
 /**
+ * Initializes farm switcher if user belongs to multiple farms.
+ */
+async function initFarmSwitcher() {
+    if (db.mode !== 'supabase') return;
+    const farms = await db.getUserFarms();
+    if (farms.length <= 1) return;
+
+    const switcher = document.getElementById('farm-switcher');
+    const select = document.getElementById('farm-switcher-select');
+    if (!switcher || !select) return;
+
+    switcher.style.display = 'block';
+    select.innerHTML = farms.map(f => 
+        `<option value="${f.id}" ${f.id === db.farmId ? 'selected' : ''}>${f.name} (${f.role})</option>`
+    ).join('');
+
+    select.addEventListener('change', async () => {
+        const newFarmId = select.value;
+        await db.switchFarm(newFarmId);
+        // Reload app state for the new farm
+        await loadAppState();
+        renderDashboard();
+        renderCattleHerd();
+        renderPasturesView();
+        renderTasks();
+    });
+}
+
+/**
+ * Shows admin panel nav item for superadmins.
+ */
+function initAdminPanel() {
+    if (!db.isSuperAdmin()) return;
+    const adminNav = document.getElementById('nav-admin-panel');
+    if (adminNav) adminNav.style.display = '';
+}
+
+/**
+ * Renders the admin panel content (farms list, users list).
+ */
+async function renderAdminPanel() {
+    if (!db.isSuperAdmin()) return;
+
+    // Render farms
+    const farmsContainer = document.getElementById('admin-farms-list');
+    if (farmsContainer) {
+        try {
+            const farms = await db.adminGetAllFarms();
+            if (farms.length === 0) {
+                farmsContainer.innerHTML = '<p style="color: var(--text-muted);">No farms found.</p>';
+            } else {
+                farmsContainer.innerHTML = farms.map(f => {
+                    const memberCount = f.farm_members ? f.farm_members.length : 0;
+                    return `
+                        <div class="admin-item">
+                            <div class="admin-item-info">
+                                <strong>${f.name || 'Unnamed Farm'}</strong>
+                                <span>${memberCount} member${memberCount !== 1 ? 's' : ''}</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="adminAccessFarm('${f.id}', '${(f.name || '').replace(/'/g, '')}')">
+                                <i class="fa-solid fa-right-to-bracket"></i> Access
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch (err) {
+            farmsContainer.innerHTML = `<p style="color: var(--danger);">${err.message}</p>`;
+        }
+    }
+
+    // Render users
+    const usersContainer = document.getElementById('admin-users-list');
+    if (usersContainer) {
+        try {
+            const users = await db.adminGetAllUsers();
+            if (users.length === 0) {
+                usersContainer.innerHTML = '<p style="color: var(--text-muted);">No users found.</p>';
+            } else {
+                usersContainer.innerHTML = users.map(u => `
+                    <div class="admin-item">
+                        <div class="admin-item-info">
+                            <strong>${u.farm_name || u.owner_name || 'Unknown'}</strong>
+                            <span>${u.global_role || 'user'} · ${u.id.substring(0, 8)}...</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (err) {
+            usersContainer.innerHTML = `<p style="color: var(--danger);">${err.message}</p>`;
+        }
+    }
+}
+
+/**
+ * Admin: access a specific farm.
+ */
+async function adminAccessFarm(farmId, farmName) {
+    if (!confirm(`Switch to farm "${farmName}" for support access?`)) return;
+    await db.adminAccessFarm(farmId);
+    await loadAppState();
+    renderDashboard();
+    renderCattleHerd();
+    renderPasturesView();
+    renderTasks();
+    alert(`Now viewing: ${farmName}`);
+}
+
+/**
+ * Initializes team members section in settings.
+ */
+async function initTeamMembers() {
+    if (db.mode !== 'supabase') return;
+
+    const card = document.getElementById('team-members-card');
+    if (!card) return;
+
+    // Only show for farm admins/owners
+    if (!db.isFarmAdmin()) {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = '';
+
+    await renderTeamMembers();
+
+    // Invite button handler
+    const inviteBtn = document.getElementById('btn-invite-member');
+    if (inviteBtn && !inviteBtn._bound) {
+        inviteBtn._bound = true;
+        inviteBtn.addEventListener('click', async () => {
+            const email = document.getElementById('invite-email').value.trim();
+            const role = document.getElementById('invite-role').value;
+            const statusEl = document.getElementById('invite-status');
+
+            if (!email) return;
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--text-muted)';
+            statusEl.textContent = 'Searching for user...';
+
+            try {
+                // Look up user by email in profiles (we need their user_id)
+                // Note: this requires the user to already have a Cattleitics account
+                const { data: users, error } = await db.supabase
+                    .from('profiles')
+                    .select('id')
+                    .limit(1);
+
+                // Since we can't query auth.users from client, we need a different approach
+                // The invited user must already exist. We'll search by checking if any profile matches.
+                // For now, show a message about this limitation.
+                statusEl.style.color = 'var(--warning)';
+                statusEl.textContent = 'The user must already have a Cattleitics account. Ask them to sign up first, then try again with their email.';
+                
+                // In a real implementation, you'd use a Supabase Edge Function here.
+                // For now, we'll attempt direct insert if we can find the user.
+                const { data: foundUser, error: lookupErr } = await db.supabase.rpc('find_user_by_email', { user_email: email });
+                
+                if (lookupErr || !foundUser) {
+                    statusEl.style.color = 'var(--danger)';
+                    statusEl.textContent = 'User not found. They need to create a Cattleitics account first.';
+                    return;
+                }
+
+                await db.inviteFarmMember(foundUser, role);
+                statusEl.style.color = 'var(--success)';
+                statusEl.textContent = `Successfully added ${email} as ${role}!`;
+                document.getElementById('invite-email').value = '';
+                await renderTeamMembers();
+            } catch (err) {
+                statusEl.style.color = 'var(--danger)';
+                statusEl.textContent = err.message || 'Failed to invite member.';
+            }
+        });
+    }
+}
+
+/**
+ * Renders the list of current farm team members.
+ */
+async function renderTeamMembers() {
+    const container = document.getElementById('team-members-list');
+    if (!container) return;
+
+    try {
+        const members = await db.getFarmMembers();
+        if (members.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No other members yet. Invite someone below.</p>';
+            return;
+        }
+
+        container.innerHTML = members.map(m => {
+            const isCurrentUser = m.user_id === db.user.id;
+            const displayName = m.profiles?.farm_name || m.profiles?.owner_name || m.user_id.substring(0, 8) + '...';
+            const roleColor = m.role === 'owner' ? 'var(--gold)' : m.role === 'admin' ? 'var(--info)' : 'var(--text-muted)';
+            const removeBtn = (!isCurrentUser && db.isFarmAdmin()) 
+                ? `<button class="btn btn-sm" style="color: var(--danger); border: 1px solid var(--danger); background: transparent; padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="removeFarmMember('${m.user_id}')"><i class="fa-solid fa-xmark"></i></button>`
+                : '';
+            return `
+                <div class="admin-item" style="padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);">
+                    <div class="admin-item-info">
+                        <strong>${displayName}${isCurrentUser ? ' (you)' : ''}</strong>
+                        <span style="color: ${roleColor}; font-size: 0.8rem; text-transform: capitalize;">${m.role}</span>
+                    </div>
+                    ${removeBtn}
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        container.innerHTML = `<p style="color: var(--danger); font-size: 0.85rem;">${err.message}</p>`;
+    }
+}
+
+/**
+ * Remove a member from the farm.
+ */
+async function removeFarmMember(userId) {
+    if (!confirm('Remove this member from your farm?')) return;
+    try {
+        await db.removeFarmMember(userId);
+        await renderTeamMembers();
+    } catch (err) {
+        alert('Failed to remove member: ' + err.message);
+    }
+}
+
+/**
  * Loads list values from IndexedDB into memory.
  */
 async function loadAppState() {
@@ -556,11 +827,17 @@ function bindViewRouting() {
                 case 'settings-view':
                     viewTitle.textContent = "Data & Configuration Control";
                     viewSubtitle.textContent = "Spreadsheet CSV import/export, backup data, and paddock adjustments";
+                    initTeamMembers();
                     break;
                 case 'readme-view':
                     viewTitle.textContent = "Cattleitics User Manual & Guide";
                     viewSubtitle.textContent = "Complete project documentation, workflows, and server operations";
                     loadAndRenderReadme();
+                    break;
+                case 'admin-view':
+                    viewTitle.textContent = "Admin Panel";
+                    viewSubtitle.textContent = "Manage all farms and users (superadmin only)";
+                    renderAdminPanel();
                     break;
             }
         });

@@ -444,3 +444,18 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. Update db.js to use farm_id instead of user_id
 -- 3. Build the admin panel UI
 -- 4. Add invite/member management UI
+
+
+-- ============================================
+-- ADDENDUM: Function to find user by email (for invite feature)
+-- Run this separately after the main migration
+-- ============================================
+CREATE OR REPLACE FUNCTION public.find_user_by_email(user_email TEXT)
+RETURNS UUID AS $$
+DECLARE
+  found_id UUID;
+BEGIN
+  SELECT id INTO found_id FROM auth.users WHERE email = user_email LIMIT 1;
+  RETURN found_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
