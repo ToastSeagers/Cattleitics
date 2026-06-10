@@ -253,8 +253,9 @@ async function initializeApp() {
                             </div>
                             <div class="auth-form-box">
                                 <h3><i class="fa-solid fa-clock"></i> Awaiting Farm Access</h3>
-                                <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Your account has been created but you haven't been added to a farm yet. Ask your farm owner to invite you using your email address.</p>
-                                <p style="color: var(--text-muted); font-size: 0.85rem;">Or if you want to create your own farm, sign out and sign up again with a farm name.</p>
+                                <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Your account is ready, but you haven't been added to a farm yet.</p>
+                                <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Ask your farm manager or owner to add you using your email address. They can do this from their <strong>Data Settings → Farm Team Members</strong> section.</p>
+                                <p style="color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border-color); padding-top: 0.75rem;">Want to manage your own farm instead? Sign out and create a new account with a farm name.</p>
                                 <button class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 1rem;" onclick="db.signOut().then(() => window.location.reload())">
                                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
                                 </button>
