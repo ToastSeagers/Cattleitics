@@ -258,32 +258,44 @@ class CattleiticsDB {
 
             // Update profile with full name
             if (this.user) {
-                await this.supabase.from('profiles')
+                const { error: profileErr } = await this.supabase.from('profiles')
                     .update({ owner_name: fullName || '' })
                     .eq('id', this.user.id);
+                if (profileErr) console.warn("Profile update error:", profileErr.message);
             }
 
-            // Load farm context — the trigger may or may not have created a farm
-            await this._loadFarmContext();
+            // Create farm if name was provided
+            if (farmName) {
+                try {
+                    const { data: newFarm, error: farmErr } = await this.supabase
+                        .from('farms')
+                        .insert({ name: farmName, created_by: this.user.id })
+                        .select()
+                        .single();
+                    
+                    if (farmErr) {
+                        console.error("Farm creation error:", farmErr.message);
+                    } else if (newFarm) {
+                        this.farmId = newFarm.id;
+                        this.farmRole = 'owner';
 
-            // If a farm name was provided and no farm exists yet, create one
-            if (farmName && !this.farmId) {
-                const { data: newFarm, error: farmErr } = await this.supabase
-                    .from('farms')
-                    .insert({ name: farmName, created_by: this.user.id })
-                    .select()
-                    .single();
-                if (!farmErr && newFarm) {
-                    this.farmId = newFarm.id;
-                    await this.supabase.from('farm_members')
-                        .insert({ farm_id: newFarm.id, user_id: this.user.id, role: 'owner' });
-                    await this.supabase.from('profiles')
-                        .update({ active_farm_id: newFarm.id })
-                        .eq('id', this.user.id);
+                        const { error: memberErr } = await this.supabase.from('farm_members')
+                            .insert({ farm_id: newFarm.id, user_id: this.user.id, role: 'owner' });
+                        if (memberErr) console.error("Farm member error:", memberErr.message);
+
+                        const { error: activeFarmErr } = await this.supabase.from('profiles')
+                            .update({ active_farm_id: newFarm.id })
+                            .eq('id', this.user.id);
+                        if (activeFarmErr) console.error("Active farm error:", activeFarmErr.message);
+                    }
+                } catch (e) {
+                    console.error("Farm creation exception:", e);
                 }
-            } else if (farmName && this.farmId) {
-                // Farm was auto-created by trigger, update its name
-                await this.supabase.from('farms').update({ name: farmName }).eq('id', this.farmId);
+            }
+
+            // Load farm context if we didn't just create one
+            if (!this.farmId) {
+                await this._loadFarmContext();
             }
         } else if (data.user) {
             this.user = data.user;
@@ -719,9 +731,22 @@ class CattleiticsDB {
      */
     async adminGetAllUsers() {
         if (!this.isSuperAdmin()) throw new Error("Not authorized");
-        const { data, error } = await this.supabase.from('profiles').select('*');
+        // Get profiles
+        const { data: profiles, error } = await this.supabase.from('profiles').select('*');
         if (error) throw error;
-        return data;
+
+        // Get farm memberships for all users
+        const { data: allMembers } = await this.supabase.from('farm_members').select('user_id, farm_id, role, farms(name)');
+
+        // Merge memberships into profiles
+        return profiles.map(p => ({
+            ...p,
+            memberships: (allMembers || []).filter(m => m.user_id === p.id).map(m => ({
+                farm_id: m.farm_id,
+                farm_name: m.farms?.name || 'Unknown',
+                role: m.role
+            }))
+        }));
     }
 }
 

@@ -625,14 +625,30 @@ async function renderAdminPanel() {
             if (users.length === 0) {
                 usersContainer.innerHTML = '<p style="color: var(--text-muted);">No users found.</p>';
             } else {
-                usersContainer.innerHTML = users.map(u => `
-                    <div class="admin-item">
-                        <div class="admin-item-info">
-                            <strong>${u.owner_name || 'No name set'}</strong>
-                            <span>${u.global_role || 'user'} · ${u.id.substring(0, 8)}...</span>
+                usersContainer.innerHTML = users.map(u => {
+                    const farmsList = u.memberships.map(m => 
+                        `<span style="display: inline-block; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.75rem; margin: 0.15rem;">${m.farm_name} <em style="color: var(--text-muted);">(${m.role})</em></span>`
+                    ).join(' ') || '<em style="color: var(--text-muted); font-size: 0.8rem;">No farm assigned</em>';
+                    const createdDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Unknown';
+
+                    return `
+                        <div class="admin-item" style="flex-direction: column; align-items: stretch; cursor: pointer;" onclick="this.querySelector('.admin-detail').style.display = this.querySelector('.admin-detail').style.display === 'none' ? 'block' : 'none'">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="admin-item-info">
+                                    <strong>${u.owner_name || 'No name set'}</strong>
+                                    <span>${u.global_role || 'user'} · Joined ${createdDate}</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down" style="color: var(--text-muted); font-size: 0.75rem;"></i>
+                            </div>
+                            <div class="admin-detail" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color); font-size: 0.85rem;">
+                                <p style="margin-bottom: 0.3rem;"><strong style="color: var(--text-muted);">User ID:</strong> <code style="font-size: 0.75rem;">${u.id}</code></p>
+                                <p style="margin-bottom: 0.3rem;"><strong style="color: var(--text-muted);">Email:</strong> (see Auth panel in Supabase)</p>
+                                <p style="margin-bottom: 0.5rem;"><strong style="color: var(--text-muted);">Farms:</strong></p>
+                                <div>${farmsList}</div>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
         } catch (err) {
             usersContainer.innerHTML = `<p style="color: var(--danger);">${err.message}</p>`;
@@ -755,32 +771,25 @@ async function initTeamMembers() {
             statusEl.textContent = 'Searching for user...';
 
             try {
-                // Look up user by email in profiles (we need their user_id)
-                // Note: this requires the user to already have a Cattleitics account
-                const { data: users, error } = await db.supabase
-                    .from('profiles')
-                    .select('id')
-                    .limit(1);
-
-                // Since we can't query auth.users from client, we need a different approach
-                // The invited user must already exist. We'll search by checking if any profile matches.
-                // For now, show a message about this limitation.
-                statusEl.style.color = 'var(--warning)';
-                statusEl.textContent = 'The user must already have a Cattleitics account. Ask them to sign up first, then try again with their email.';
+                // Look up user by email using our database function
+                const { data: foundUserId, error: lookupErr } = await db.supabase
+                    .rpc('find_user_by_email', { user_email: email });
                 
-                // In a real implementation, you'd use a Supabase Edge Function here.
-                // For now, we'll attempt direct insert if we can find the user.
-                const { data: foundUser, error: lookupErr } = await db.supabase.rpc('find_user_by_email', { user_email: email });
-                
-                if (lookupErr || !foundUser) {
+                if (lookupErr) {
                     statusEl.style.color = 'var(--danger)';
-                    statusEl.textContent = 'User not found. They need to create a Cattleitics account first.';
+                    statusEl.textContent = 'Error looking up user: ' + lookupErr.message;
                     return;
                 }
 
-                await db.inviteFarmMember(foundUser, role);
+                if (!foundUserId) {
+                    statusEl.style.color = 'var(--danger)';
+                    statusEl.textContent = 'No account found for that email. They need to sign up at cattleitics.vercel.app first.';
+                    return;
+                }
+
+                await db.inviteFarmMember(foundUserId, role);
                 statusEl.style.color = 'var(--success)';
-                statusEl.textContent = `Successfully added ${email} as ${role}!`;
+                statusEl.textContent = `Successfully added ${email} as ${role}! They'll see this farm next time they log in.`;
                 document.getElementById('invite-email').value = '';
                 await renderTeamMembers();
             } catch (err) {
